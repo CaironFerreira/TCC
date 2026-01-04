@@ -6,7 +6,6 @@
 static const int SCREEN_W = 128;
 static const int SCREEN_H = 64;
 
-// Usa heap/obj estático (mais simples)
 static Adafruit_SSD1306 display(SCREEN_W, SCREEN_H, &Wire, -1);
 
 bool DisplayService::begin(int sdaPin, int sclPin, uint8_t i2cAddr) {
