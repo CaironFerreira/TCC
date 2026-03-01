@@ -1,10 +1,10 @@
-// src/app/App.cpp
 #include "App.h"
 #include <WiFi.h>
+#include <math.h>   // isfinite
 
 App::App(TelemetryService& telemetry,
          DisplayService& ui,
-         StepperL9110& speedMotor,
+         GaugeMotorL9110Pwm& speedMotor,
          SpeedGauge& speedGauge)
   : _telemetry(telemetry),
     _ui(ui),
@@ -14,8 +14,15 @@ App::App(TelemetryService& telemetry,
 void App::begin(const AppConfig& cfg) {
   _cfg = cfg;
 
+  // ===== TESTE 2: força ampFloor (torque mínimo) se habilitado =====
+  if (kForceAmpFloor) {
+    _cfg.speedMotorCfg.ampFloor = APP_TEST_AMP_FLOOR_VALUE;
+  }
+
   // OLED
-  _ui.begin(_cfg.oledSda, _cfg.oledScl, _cfg.oledAddr);
+  if (!kDisableUi) {
+    _ui.begin(_cfg.oledSda, _cfg.oledScl, _cfg.oledAddr);
+  }
 
   // estado inicial
   _st.ssid = _cfg.wifiSsid;
@@ -25,25 +32,41 @@ void App::begin(const AppConfig& cfg) {
   _st.rpm = 0;
   _st.gear = 0;
 
-  _ui.setStatus(_st);
-  _ui.tick();
+  if (!kDisableUi) {
+    _ui.setStatus(_st);
+    _ui.tick();
+  }
 
-  // ===== Motor (velocímetro) =====
-  // Inicia driver e faz homing por batente (curso todo pra esquerda)
+  // ===== Motor + Gauge (velocímetro) =====
   _speedMotor.begin(_cfg.speedMotorCfg);
-  _speedMotor.homeByHardStop(_cfg.speedFullScaleMicrosteps);
+
+  // aplica configs (garante range e escala do painel)
+  auto gcfg = _cfg.speedGaugeCfg;
+  gcfg.speedMaxKmh = _cfg.speedMaxKmh;
+  gcfg.rangeSteps0ToMax = _cfg.speedRangeSteps0ToMax;
+
+  _speedGauge.begin(gcfg);
+  _speedGauge.homeToStop();
 
   // Wi-Fi (conexão inicial com timeout)
-  connectWifiWithTimeout();
-  updateUiWifiFields();
-  _ui.setStatus(_st);
-  _ui.tick();
+  if (!kDisableWifi) {
+    connectWifiWithTimeout();
+    updateUiWifiFields();
+
+    if (!kDisableUi) {
+      _ui.setStatus(_st);
+      _ui.tick();
+    }
+  }
 
   // UDP / Telemetria
-  _telemetry.begin(_cfg.udpPort);
+  if (!kDisableTelemetry) {
+    _telemetry.begin(_cfg.udpPort);
+  }
 
   _lastUiMs = 0;
   _lastWifiMs = 0;
+  _lastGaugeMs = 0;
 }
 
 bool App::connectWifiWithTimeout() {
@@ -54,14 +77,19 @@ bool App::connectWifiWithTimeout() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(150);
 
-    updateUiWifiFields();
-    _ui.setStatus(_st);
-    _ui.tick();
-
-    if (millis() - start > _cfg.wifiConnectTimeoutMs) {
+    // Durante a conexão, atualiza tela somente se UI estiver habilitada
+    if (!kDisableUi) {
       updateUiWifiFields();
       _ui.setStatus(_st);
       _ui.tick();
+    }
+
+    if (millis() - start > _cfg.wifiConnectTimeoutMs) {
+      if (!kDisableUi) {
+        updateUiWifiFields();
+        _ui.setStatus(_st);
+        _ui.tick();
+      }
       return false;
     }
   }
@@ -97,24 +125,58 @@ void App::applyTelemetryToUi() {
 }
 
 void App::tick() {
-  _telemetry.tick();
-
-  const auto& f = _telemetry.lastFrame();
-
-  _speedGauge.update(f);
-  _speedMotor.tick();
-
-  uint32_t now = millis();
-
-  if (now - _lastWifiMs >= WIFI_INTERVAL_MS) {
-    _lastWifiMs = now;
-    updateUiWifiFields();
+  // ===== Telemetria =====
+  if (!kDisableTelemetry) {
+    _telemetry.tick();
   }
+
+  // ===== Telemetria -> velocidade (único ponto de decisão) =====
+  float speedKmh = 0.0f;
+  if (!kDisableTelemetry) {
+    const auto& f = _telemetry.lastFrame();
+    if (f.valid) speedKmh = f.speedKmh;
+  }
+
+  // Sanidade (evita NaN, negativos e extrapolações)
+  if (!isfinite(speedKmh) || speedKmh < 0.0f) speedKmh = 0.0f;
+  if (speedKmh > _cfg.speedMaxKmh) speedKmh = _cfg.speedMaxKmh;
+
+  // ===== Atualiza alvo do gauge =====
+  _speedGauge.setSpeedKmh(speedKmh);
+
+  // ===== Atualiza o ponteiro =====
+#ifdef APP_TEST_GAUGE_ALWAYS_UPDATE
+  _speedGauge.update();
+  const uint32_t now = millis();
+#else
+  const uint32_t now = millis();
+  if (now - _lastGaugeMs >= GAUGE_INTERVAL_MS) {
+    _lastGaugeMs = now;
+    _speedGauge.update();
+  }
+#endif
+
+  // ===== Wi-Fi =====
+  if (!kDisableWifi) {
+    if (now - _lastWifiMs >= WIFI_INTERVAL_MS) {
+      _lastWifiMs = now;
+      updateUiWifiFields();
+    }
+  }
+
+  // ===== UI =====
+  if (kDisableUi) return;
 
   if (now - _lastUiMs < UI_INTERVAL_MS) return;
   _lastUiMs = now;
 
-  applyTelemetryToUi();
+  if (!kDisableTelemetry) {
+    applyTelemetryToUi();
+  } else {
+    _st.speedKmh = 0.0f;
+    _st.rpm = 0;
+    _st.gear = 0;
+  }
 
   _ui.setStatus(_st);
   _ui.tick();
