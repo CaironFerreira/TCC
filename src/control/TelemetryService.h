@@ -10,7 +10,7 @@ public:
   TelemetryService(UdpReceiver& receiver, ITelemetryDecoder& decoder);
 
   bool begin(uint16_t port);
-  void tick(); // chama no loop()
+  void tick();
 
   const TelemetryFrame& lastFrame() const { return _last; }
 
@@ -26,5 +26,5 @@ private:
   static constexpr size_t BUF_SIZE = 512;
   uint8_t _buf[BUF_SIZE];
 
-  static constexpr uint32_t SIGNAL_TIMEOUT_MS = 300; // ajustável
+  static constexpr uint32_t SIGNAL_TIMEOUT_MS = 300;
 };

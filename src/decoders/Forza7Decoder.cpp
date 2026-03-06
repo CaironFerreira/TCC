@@ -1,10 +1,10 @@
 #include "Forza7Decoder.h"
 #include <Arduino.h>
-#include <string.h> // memcpy
+#include <string.h> 
 
 static inline float readF32LE(const uint8_t* p) {
   float v;
-  memcpy(&v, p, sizeof(float));   // ESP32 é little-endian, então ok
+  memcpy(&v, p, sizeof(float));
   return v;
 }
 
@@ -20,9 +20,9 @@ bool Forza7Decoder::decode(const uint8_t* data, size_t len, TelemetryFrame& out)
   out.timestampMs = millis();
 
   // Offsets (FM7 Dash)
-  constexpr size_t OFF_RPM   = 16;   // F32 CurrentEngineRpm
-  constexpr size_t OFF_SPEED = 244;  // F32 Speed (m/s)
-  constexpr size_t OFF_GEAR  = 307;  // U8 Gear
+  constexpr size_t OFF_RPM   = 16;   // F32 RPM
+  constexpr size_t OFF_SPEED = 244;  // F32 Velocidade (m/s)
+  constexpr size_t OFF_GEAR  = 307;  // U8 Marcha
 
   const float rpm = readF32LE(data + OFF_RPM);
   const float speedMs = readF32LE(data + OFF_SPEED);
