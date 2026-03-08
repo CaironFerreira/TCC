@@ -8,7 +8,7 @@ public:
   struct Config {
     float maxSpeedKmh = 240.0f;   // velocidade máxima da escala
     int32_t minSteps = 0;         // posição do ponteiro em 0 km/h
-    int32_t maxSteps = 180;     // posição do ponteiro na velocidade máxima
+    int32_t maxSteps = 180;       // posição do ponteiro na velocidade máxima
   };
 
   SpeedGauge(GaugeMotorTmc2208& motor, const Config& cfg);
@@ -31,6 +31,6 @@ private:
   GaugeMotorTmc2208& _motor;
   Config _cfg;
 
-  float _currentSpeedKmh = 0.0f;
+  float _currentSpeedKmh = 0.0f;   // velocidade já suavizada
   int32_t _targetSteps = 0;
 };

@@ -37,6 +37,9 @@ void App::begin(const AppConfig& cfg) {
   // Conecta no Wi-Fi
   connectWifiWithTimeout();
 
+  // Inicia a telemetria UDP
+  _telemetry.begin(_cfg.udpPort);
+
   // Atualiza UI inicial
   updateUiWifiFields();
   applyTelemetryToUi();

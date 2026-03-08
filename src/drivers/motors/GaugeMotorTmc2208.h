@@ -15,7 +15,7 @@ public:
     uint32_t stepPulseUs = 2;
 
     // Intervalo MÍNIMO entre passos (quanto maior, mais lento/suave)
-    uint32_t stepIntervalUs = 1000;
+    uint32_t stepIntervalUs = 100;
   };
 
   explicit GaugeMotorTmc2208(const Config& cfg);

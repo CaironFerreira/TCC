@@ -51,7 +51,7 @@ void setup() {
   motorCfg.pinEnable = PIN_EN;
   motorCfg.invertDirection = false;
   motorCfg.stepPulseUs = 2;
-  motorCfg.stepIntervalUs = 1200;
+  motorCfg.stepIntervalUs = 20000;
 
   speedGaugeCfg.maxSpeedKmh = SPEED_MAX_KMH;
   speedGaugeCfg.minSteps = 0;

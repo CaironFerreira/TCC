@@ -10,7 +10,12 @@ void SpeedGauge::begin() {
 }
 
 void SpeedGauge::setSpeedKmh(float speedKmh) {
-  _currentSpeedKmh = clampSpeed(speedKmh);
+  const float clampedSpeed = clampSpeed(speedKmh);
+
+  // Filtro exponencial simples para suavizar a leitura
+  const float alpha = 0.06f;
+  _currentSpeedKmh = _currentSpeedKmh + alpha * (clampedSpeed - _currentSpeedKmh);
+
   _targetSteps = speedToSteps(_currentSpeedKmh);
   _motor.moveTo(_targetSteps);
 }
