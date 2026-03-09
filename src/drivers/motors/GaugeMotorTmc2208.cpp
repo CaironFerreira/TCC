@@ -71,7 +71,6 @@ void GaugeMotorTmc2208::tick(uint32_t nowMicros) {
   if (forward != _dirForward) {
     setDirection(forward);
     // Pequena margem antes do STEP após troca de DIR (setup time).
-    // 2us costuma ser suficiente; mantemos simples e barato.
     delayMicroseconds(2);
   }
 

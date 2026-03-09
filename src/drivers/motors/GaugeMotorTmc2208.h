@@ -8,10 +8,10 @@ public:
     int pinDirection  = -1;
     int pinEnable   = -1;
 
-    // Inverte o sentido (caso o ponteiro esteja indo ao contrário)
+    // Inverte o sentido
     bool invertDirection  = false;
 
-    // Pulso STEP em microssegundos (>= 2us costuma funcionar bem)
+    // Pulso STEP em microssegundos 
     uint32_t stepPulseUs = 2;
 
     // Intervalo MÍNIMO entre passos (quanto maior, mais lento/suave)
