@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <TFT_eSPI.h>
 
 struct UiStatus {
   bool wifiConnected = false;
@@ -12,15 +13,18 @@ struct UiStatus {
 
 class DisplayService {
 public:
-  bool begin(int sdaPin = 21, int sclPin = 22, uint8_t i2cAddr = 0x3C);
+  bool begin(int sdaPin = -1, int sclPin = -1, uint8_t i2cAddr = 0x00);
   void setStatus(const UiStatus& s);
   void tick();
 
 private:
+  TFT_eSPI display = TFT_eSPI();
+
   UiStatus status;
   unsigned long lastDraw = 0;
-  const unsigned long drawIntervalMs = 250; // ajuste
+  const unsigned long drawIntervalMs = 250;
   bool ready = false;
 
   void draw();
+  String gearToString() const;
 };

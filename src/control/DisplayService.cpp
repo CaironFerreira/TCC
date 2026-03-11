@@ -1,26 +1,16 @@
 #include "DisplayService.h"
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
-static const int SCREEN_W = 128;
-static const int SCREEN_H = 64;
-
-static Adafruit_SSD1306 display(SCREEN_W, SCREEN_H, &Wire, -1);
 
 bool DisplayService::begin(int sdaPin, int sclPin, uint8_t i2cAddr) {
-  Wire.begin(sdaPin, sclPin);
+  (void)sdaPin;
+  (void)sclPin;
+  (void)i2cAddr;
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddr)) {
-    ready = false;
-    return false;
-  }
+  display.init();
+  display.setRotation(1); // horizontal
+  display.fillScreen(TFT_BLACK);
+  display.setTextDatum(MC_DATUM);
 
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
   ready = true;
-
   draw();
   return true;
 }
@@ -31,42 +21,48 @@ void DisplayService::setStatus(const UiStatus& s) {
 
 void DisplayService::tick() {
   if (!ready) return;
+
   unsigned long now = millis();
   if (now - lastDraw < drawIntervalMs) return;
+
   lastDraw = now;
   draw();
 }
 
-void DisplayService::draw() {
-  display.clearDisplay();
+String DisplayService::gearToString() const {
+  if (status.gear < 0) return "R";
+  if (status.gear == 0) return "N";
+  return String(status.gear);
+}
 
-  // Linha 1: Rede conectada
-  display.setCursor(0, 0);
-  display.print("WiFi: ");
-  display.print(status.wifiConnected ? "OK " : "NO ");
-  display.print(status.ssid);
+void DisplayService::draw() {
+  display.fillScreen(TFT_BLACK);
+
+  const int cx = display.width() / 2;
+  const int cy = display.height() / 2;
+
+  // Linha 1: nome da rede + status
+  display.setTextColor(TFT_WHITE, TFT_BLACK);
+  display.setTextSize(2);
+
+  String wifiLine = status.ssid;
+  if (wifiLine.length() == 0) wifiLine = "SEM REDE";
+  wifiLine += status.wifiConnected ? " OK" : " OFF";
+  display.drawString(wifiLine, cx, cy - 60);
 
   // Linha 2: IP
-  display.setCursor(0, 16);
-  display.print("IP: ");
-  display.print(status.ip);
+  display.setTextColor(TFT_LIGHTGREY, TFT_BLACK);
+  display.setTextSize(2);
+  display.drawString(status.ip, cx, cy - 35);
 
-  // Linha 3: RPM
-  display.setCursor(0, 32);
-  display.print("RPM: ");
-  display.print(status.rpm);
+  // Linha 3: velocidade
+  display.setTextColor(TFT_CYAN, TFT_BLACK);
+  display.setTextSize(3);
+  display.drawString(String(status.speedKmh, 0) + " km/h", cx, cy + 5);
 
-  // Linha 4: Velocidade e marcha
-  display.setCursor(0, 48);
-  display.print("SPD: ");
-  display.print(status.speedKmh, 1);
-  display.print(" G:");
-  if (status.gear == 0) {
-    display.print("R");
-  } else {
-    display.print(status.gear);
-  }
-
-
-  display.display();
+  // Linha 4: RPM + marcha
+  display.setTextColor(TFT_YELLOW, TFT_BLACK);
+  display.setTextSize(2);
+  String infoLine = "RPM " + String(status.rpm) + "   G " + gearToString();
+  display.drawString(infoLine, cx, cy + 45);
 }
