@@ -5,34 +5,28 @@ class GaugeMotorTmc2208 {
 public:
   struct Config {
     int pinStep = -1;
-    int pinDirection  = -1;
-    int pinEnable   = -1;
-
-    // Inverte o sentido
-    bool invertDirection  = false;
-
-    // Pulso STEP em microssegundos 
+    int pinDirection = -1;
+    int pinEnable = -1;
+    bool invertDirection = false;
     uint32_t stepPulseUs = 2;
-
-    // Intervalo MÍNIMO entre passos (quanto maior, mais lento/suave)
-    uint32_t stepIntervalUs = 100;
   };
 
   explicit GaugeMotorTmc2208(const Config& cfg);
 
   void begin();
   void enable(bool on);
-  bool enabled() const { return _enabled; }
-
-  void setCurrentSteps(int32_t steps);
-  int32_t currentSteps() const { return _posSteps; }
-
-  void moveTo(int32_t targetSteps);
-  int32_t targetSteps() const { return _targetSteps; }
-
-  bool isMoving() const { return _posSteps != _targetSteps; }
-
   void tick(uint32_t nowMicros);
+
+  // Nova arquitetura: cada comando já informa as velocidades de subida/descida
+  void moveTo(int32_t targetSteps, float riseStepsPerSec, float fallStepsPerSec);
+
+  // Usado na calibração para redefinir a posição lógica atual do ponteiro
+  void setCurrentPosition(int32_t steps);
+
+  bool isMoving() const;
+
+  int32_t currentPosition() const { return _currentPositionSteps; }
+  int32_t targetPosition() const { return _targetPositionSteps; }
 
 private:
   void setDirection(bool forward);
@@ -41,9 +35,14 @@ private:
   Config _cfg;
 
   bool _enabled = false;
-  int32_t _posSteps = 0;
-  int32_t _targetSteps = 0;
 
-  bool _dirForward = true;
-  uint32_t _lastStepMicros = 0;
+  int32_t _currentPositionSteps = 0;
+  int32_t _targetPositionSteps = 0;
+
+  float _riseStepsPerSec = 300.0f;
+  float _fallStepsPerSec = 300.0f;
+  float _activeStepsPerSec = 300.0f;
+
+  uint32_t _lastUpdateMicros = 0;
+  float _stepAccumulator = 0.0f;
 };

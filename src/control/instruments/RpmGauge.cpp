@@ -1,4 +1,5 @@
 #include "RpmGauge.h"
+#include <math.h>
 
 RpmGauge::RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
@@ -6,18 +7,33 @@ RpmGauge::RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg)
 void RpmGauge::begin() {
   _currentRpm = 0.0f;
   _targetSteps = rpmToSteps(0.0f);
-  _motor.moveTo(_targetSteps);
+
+  const float speed = _cfg.normalStepsPerSec;
+  _motor.moveTo(_targetSteps, speed, speed);
 }
 
 void RpmGauge::setRpm(float rpm) {
   const float clampedRpm = clampRpm(rpm);
 
-  // Filtro exponencial simples para suavizar a leitura
-  const float alpha = 0.06f;
-  _currentRpm = _currentRpm + alpha * (clampedRpm - _currentRpm);
+  const int32_t rawTargetSteps = rpmToSteps(clampedRpm);
+  const int32_t distanceToTarget = rawTargetSteps - _motor.currentPosition();
+
+  const bool fastDrop = distanceToTarget < -35;
+  const bool fastRise = distanceToTarget > 35;
+
+  if (fastDrop || fastRise) {
+    _currentRpm = clampedRpm;
+  } else {
+    const float alpha = 0.25f;
+    _currentRpm = _currentRpm + alpha * (clampedRpm - _currentRpm);
+  }
 
   _targetSteps = rpmToSteps(_currentRpm);
-  _motor.moveTo(_targetSteps);
+
+  const float speedToUse =
+      (fastDrop || fastRise) ? _cfg.fastStepsPerSec : _cfg.normalStepsPerSec;
+
+  _motor.moveTo(_targetSteps, speedToUse, speedToUse);
 }
 
 void RpmGauge::tick(uint32_t nowMicros) {

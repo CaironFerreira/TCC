@@ -6,17 +6,17 @@
 class RpmGauge {
 public:
   struct Config {
-    float maxRpm = 8000.0f;   // limite da escala do conta-giros
+    float maxRpm = 8000.0f;
     int32_t minSteps = 0;
     int32_t maxSteps = 180;
+    float normalStepsPerSec = 320.0f;
+    float fastStepsPerSec = 420.0f;
   };
 
   RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg);
 
   void begin();
-
   void setRpm(float rpm);
-
   void tick(uint32_t nowMicros);
 
   float currentRpm() const { return _currentRpm; }

@@ -3,28 +3,35 @@
 #include <TFT_eSPI.h>
 
 struct UiStatus {
+  String ssid;
   bool wifiConnected = false;
-  String ssid = "";
-  String ip = "-";
+  String ip;
   float speedKmh = 0.0f;
-  uint16_t rpm = 0;
-  int8_t gear = 0; // -1 = R, 0 = N, 1.. = marchas
+  int rpm = 0;
+  int gear = 0;
+  float fuel = 0.0f;
+  float tireTempAvg = 0.0f;
 };
 
 class DisplayService {
 public:
-  bool begin(int sdaPin = -1, int sclPin = -1, uint8_t i2cAddr = 0x00);
+  bool begin();
   void setStatus(const UiStatus& s);
   void tick();
 
 private:
-  TFT_eSPI display = TFT_eSPI();
+  void draw(bool forceAll = false, unsigned long now = 0);
+  void formatGear(char* out, size_t outSize) const;
 
+  TFT_eSPI display;
   UiStatus status;
-  unsigned long lastDraw = 0;
-  const unsigned long drawIntervalMs = 250;
   bool ready = false;
 
-  void draw();
-  String gearToString() const;
+  unsigned long lastLineUpdate[5] = {0, 0, 0, 0, 0};
+
+  char lastWifiLine[40]  = {0};
+  char lastIpLine[24]    = {0};
+  char lastSpeedLine[20] = {0};
+  char lastInfoLine[32]  = {0};
+  char lastDebugLine[32] = {0};
 };

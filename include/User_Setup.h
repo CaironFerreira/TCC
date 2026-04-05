@@ -17,7 +17,6 @@
 // ===== Ajustes ST7789 =====
 #define TFT_RGB_ORDER TFT_BGR
 #define TFT_INVERSION_ON
-#define CGRAM_OFFSET
 
 // ===== Frequência do SPI =====
 #define SPI_FREQUENCY 40000000

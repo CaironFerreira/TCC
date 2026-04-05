@@ -1,0 +1,31 @@
+#pragma once
+#include <Arduino.h>
+#include "drivers/motors/GaugeMotorTmc2208.h"
+
+class FuelGauge {
+public:
+  struct Config {
+    float minFuelLevel = 0.0f;
+    float maxFuelLevel = 1.0f;
+    int32_t minSteps = 0;
+    int32_t maxSteps = 180;
+    float riseStepsPerSec = 120.0f;
+    float fallStepsPerSec = 120.0f;
+  };
+
+  FuelGauge(GaugeMotorTmc2208& motor, const Config& cfg);
+
+  void begin();
+  void setFuelLevel(float level);
+  void tick(uint32_t nowMicros);
+
+private:
+  float clampFuelLevel(float level) const;
+  int32_t fuelToSteps(float level) const;
+
+  GaugeMotorTmc2208& _motor;
+  Config _cfg;
+
+  float _currentFuelLevel = 0.0f;
+  int32_t _targetSteps = 0;
+};
