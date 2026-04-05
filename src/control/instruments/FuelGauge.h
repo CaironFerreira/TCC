@@ -7,17 +7,26 @@ public:
   struct Config {
     float minFuelLevel = 0.0f;
     float maxFuelLevel = 1.0f;
+
     int32_t minSteps = 0;
     int32_t maxSteps = 180;
-    float riseStepsPerSec = 120.0f;
-    float fallStepsPerSec = 120.0f;
+
+    float normalStepsPerSec = 120.0f;
+    float fastStepsPerSec = 120.0f;
+
+    float calibrationRiseStepsPerSec = 300.0f;
+    float calibrationFallStepsPerSec = 300.0f;
   };
 
   FuelGauge(GaugeMotorTmc2208& motor, const Config& cfg);
 
   void begin();
+  void calibrate();
   void setFuelLevel(float level);
   void tick(uint32_t nowMicros);
+
+  float currentFuelLevel() const { return _currentFuelLevel; }
+  int32_t targetSteps() const { return _targetSteps; }
 
 private:
   float clampFuelLevel(float level) const;

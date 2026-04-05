@@ -5,9 +5,36 @@ TireTempGauge::TireTempGauge(GaugeMotorTmc2208& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void TireTempGauge::begin() {
+  _motor.begin();
+  calibrate();
+
   _currentTemp = _cfg.minTemp;
   _targetSteps = tempToSteps(_currentTemp);
-  _motor.moveTo(_targetSteps, _cfg.riseStepsPerSec, _cfg.fallStepsPerSec);
+
+  const float speed = _cfg.normalStepsPerSec;
+  _motor.moveTo(_targetSteps, speed, speed);
+}
+
+void TireTempGauge::calibrate() {
+  // zera referência atual
+  _motor.setCurrentPosition(0);
+
+  // recua além do curso para garantir batente
+  _motor.moveTo(
+    -(int32_t)(_cfg.maxSteps * 1.3f),
+    _cfg.calibrationRiseStepsPerSec,
+    _cfg.calibrationFallStepsPerSec
+  );
+
+  while (_motor.isMoving()) {
+    _motor.tick(micros());
+  }
+
+  // define zero lógico
+  _motor.setCurrentPosition(0);
+
+  _currentTemp = _cfg.minTemp;
+  _targetSteps = 0;
 }
 
 void TireTempGauge::setTemperature(float temp) {
@@ -17,7 +44,7 @@ void TireTempGauge::setTemperature(float temp) {
   _currentTemp = _currentTemp + alpha * (clamped - _currentTemp);
 
   _targetSteps = tempToSteps(_currentTemp);
-  _motor.moveTo(_targetSteps, _cfg.riseStepsPerSec, _cfg.fallStepsPerSec);
+  _motor.moveTo(_targetSteps, _cfg.normalStepsPerSec, _cfg.fastStepsPerSec);
 }
 
 void TireTempGauge::tick(uint32_t nowMicros) {

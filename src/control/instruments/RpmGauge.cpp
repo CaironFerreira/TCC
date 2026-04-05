@@ -5,11 +5,35 @@ RpmGauge::RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void RpmGauge::begin() {
+  _motor.begin();
+  calibrate();
   _currentRpm = 0.0f;
   _targetSteps = rpmToSteps(0.0f);
 
   const float speed = _cfg.normalStepsPerSec;
   _motor.moveTo(_targetSteps, speed, speed);
+}
+
+void RpmGauge::calibrate() {
+
+  // zera referência atual
+  _motor.setCurrentPosition(0);
+
+  _motor.moveTo(
+    -(_cfg.maxSteps*1.3f),
+    _cfg.calibrationRiseStepsPerSec,
+    _cfg.calibrationFallStepsPerSec
+  );
+
+  while (_motor.isMoving()) {
+    _motor.tick(micros());
+  }
+
+  // define essa posição como zero lógico
+  _motor.setCurrentPosition(0);
+
+  _currentRpm = 0.0f;
+  _targetSteps = 0;
 }
 
 void RpmGauge::setRpm(float rpm) {

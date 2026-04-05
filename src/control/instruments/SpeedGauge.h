@@ -10,11 +10,17 @@ public:
     int32_t maxSteps = 180;
     float normalStepsPerSec = 60.0f;
     float fastStepsPerSec = 800.0f;
+
+    // ===== Calibração própria do velocímetro =====
+    int32_t calibrationBackoffSteps = 8;
+    float calibrationRiseStepsPerSec = 300.0f;
+    float calibrationFallStepsPerSec = 300.0f;
   };
 
   SpeedGauge(GaugeMotorTmc2208& motor, const Config& cfg);
 
   void begin();
+  void calibrate();
   void setSpeedKmh(float speedKmh);
   void tick(uint32_t nowMicros);
 

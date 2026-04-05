@@ -9,13 +9,18 @@ public:
     float maxRpm = 8000.0f;
     int32_t minSteps = 0;
     int32_t maxSteps = 180;
+
     float normalStepsPerSec = 320.0f;
     float fastStepsPerSec = 420.0f;
+
+    float calibrationRiseStepsPerSec = 300.0f;
+    float calibrationFallStepsPerSec = 300.0f;
   };
 
   RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg);
 
   void begin();
+  void calibrate();
   void setRpm(float rpm);
   void tick(uint32_t nowMicros);
 

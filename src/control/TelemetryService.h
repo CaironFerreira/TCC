@@ -14,6 +14,15 @@ public:
 
   const TelemetryFrame& lastFrame() const { return _last; }
 
+  bool hasValidTelemetry() const;
+  bool hasAnySignal() const { return _hasAnySignal; }
+
+  float speedKmh() const;
+  float rpm() const;
+  int gear() const;
+  float fuelLevel() const;
+  float tireTempAvgC() const;
+
 private:
   UdpReceiver& _receiver;
   ITelemetryDecoder& _decoder;

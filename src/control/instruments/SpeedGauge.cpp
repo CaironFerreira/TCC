@@ -5,11 +5,43 @@ SpeedGauge::SpeedGauge(GaugeMotorTmc2208& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void SpeedGauge::begin() {
+  _motor.begin();
+  calibrate();
+
   _currentSpeedKmh = 0.0f;
   _targetSteps = speedToSteps(0.0f);
 
   const float speed = _cfg.normalStepsPerSec;
   _motor.moveTo(_targetSteps, speed, speed);
+}
+
+void SpeedGauge::calibrate() {
+
+  // zera referência atual
+  _motor.setCurrentPosition(0);
+
+  _motor.moveTo(
+    -(_cfg.maxSteps*1.3f),
+    _cfg.calibrationRiseStepsPerSec,
+    _cfg.calibrationFallStepsPerSec
+  );
+  while (_motor.isMoving()) {
+    _motor.tick(micros());
+  }
+  _motor.setCurrentPosition(0);
+  _motor.moveTo(
+      10,
+      _cfg.calibrationRiseStepsPerSec,
+      _cfg.calibrationFallStepsPerSec
+  );
+  while (_motor.isMoving()) {
+    _motor.tick(micros());
+  }
+  // define essa posição como zero lógico
+  _motor.setCurrentPosition(0);
+
+  _currentSpeedKmh = 0.0f;
+  _targetSteps = 0;
 }
 
 void SpeedGauge::setSpeedKmh(float speedKmh) {
@@ -39,6 +71,7 @@ void SpeedGauge::setSpeedKmh(float speedKmh) {
 
   _motor.moveTo(_targetSteps, speedToUse, speedToUse);
 }
+
 void SpeedGauge::tick(uint32_t nowMicros) {
   _motor.tick(nowMicros);
 }
