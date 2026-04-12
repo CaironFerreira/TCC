@@ -28,7 +28,6 @@ public:
   void tick();
 
 private:
-  bool connectWifiWithTimeout();
   void updateUiWifiFields();
   void applyTelemetryToUi();
 

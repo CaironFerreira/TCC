@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "../domain/TelemetryFrame.h"
-#include "../drivers/net/UdpReceiver.h"
+#include "../drivers/network//udp/UdpReceiver.h"
 #include "../decoders/ITelemetryDecoder.h"
 
 class TelemetryService {

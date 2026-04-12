@@ -2,8 +2,6 @@
 #include <Arduino.h>
 
 // ===================== WIFI / REDE =====================
-static constexpr const char* WIFI_SSID = "CAIRON";
-static constexpr const char* WIFI_PASS = "12345678";
 
 static constexpr uint16_t UDP_PORT = 5300;
 static constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;

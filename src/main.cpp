@@ -1,8 +1,10 @@
 #include <Arduino.h>
+#include <WiFi.h>
 
 #include "BoardConfig.h"
+#include "drivers/network/wifi/WiFiConfigPortal.h"
 
-#include "drivers/net/UdpReceiver.h"
+#include "drivers/network/udp/UdpReceiver.h"
 #include "decoders/Forza7Decoder.h"
 #include "control/TelemetryService.h"
 #include "control/DisplayService.h"
@@ -12,6 +14,18 @@
 #include "control/instruments/TireTempGauge.h"
 #include "drivers/motors/GaugeMotorTmc2208.h"
 #include "app/App.h"
+
+// ===== Portal Wi-Fi =====
+static WiFiConfigPortal::Config makePortalConfig() {
+  WiFiConfigPortal::Config cfg;
+  cfg.apSsid = "ESP32-Config";
+  cfg.apPassword = "12345678";
+  cfg.connectTimeoutMs = WIFI_CONNECT_TIMEOUT_MS;
+  return cfg;
+}
+
+static WiFiConfigPortal wifiPortal(makePortalConfig());
+static bool appStarted = false;
 
 // ===== Core =====
 static UdpReceiver udp;
@@ -113,10 +127,14 @@ static TireTempGauge::Config makeTireTempGaugeConfig() {
 
 static AppConfig makeAppConfig() {
   AppConfig cfg;
-  cfg.wifiSsid = WIFI_SSID;
-  cfg.wifiPass = WIFI_PASS;
+
+  // Agora o Wi-Fi já deve estar conectado antes de chamar app.begin().
+  // O App não deve mais depender de SSID/senha fixos.
+  cfg.wifiSsid = "";
+  cfg.wifiPass = "";
   cfg.udpPort = UDP_PORT;
   cfg.wifiConnectTimeoutMs = WIFI_CONNECT_TIMEOUT_MS;
+
   return cfg;
 }
 
@@ -126,10 +144,10 @@ static const GaugeMotorTmc2208::Config rpmMotorCfg   = makeRpmMotorConfig();
 static const GaugeMotorTmc2208::Config fuelMotorCfg  = makeFuelMotorConfig();
 static const GaugeMotorTmc2208::Config tempMotorCfg  = makeTempMotorConfig();
 
-static const SpeedGauge::Config speedGaugeCfg         = makeSpeedGaugeConfig();
-static const RpmGauge::Config rpmGaugeCfg             = makeRpmGaugeConfig();
-static const FuelGauge::Config fuelGaugeCfg           = makeFuelGaugeConfig();
-static const TireTempGauge::Config tireTempGaugeCfg   = makeTireTempGaugeConfig();
+static const SpeedGauge::Config speedGaugeCfg       = makeSpeedGaugeConfig();
+static const RpmGauge::Config rpmGaugeCfg           = makeRpmGaugeConfig();
+static const FuelGauge::Config fuelGaugeCfg         = makeFuelGaugeConfig();
+static const TireTempGauge::Config tireTempGaugeCfg = makeTireTempGaugeConfig();
 
 // ===== Objetos =====
 static GaugeMotorTmc2208 speedMotor(speedMotorCfg);
@@ -152,9 +170,26 @@ static App app(
 );
 
 void setup() {
-  app.begin(makeAppConfig());
+  wifiPortal.begin();
+
+  if (wifiPortal.isConnected()) {
+    app.begin(makeAppConfig());
+    appStarted = true;
+  }
 }
 
 void loop() {
-  app.tick();
+  if (wifiPortal.isPortalActive()) {
+    wifiPortal.tick();
+    return;
+  }
+
+  if (!appStarted && wifiPortal.isConnected()) {
+    app.begin(makeAppConfig());
+    appStarted = true;
+  }
+
+  if (appStarted) {
+    app.tick();
+  }
 }

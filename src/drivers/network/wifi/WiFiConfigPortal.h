@@ -1,0 +1,98 @@
+#pragma once
+
+#include <Arduino.h>
+#include <Preferences.h>
+#include <WebServer.h>
+#include <WiFi.h>
+
+class WiFiConfigPortal {
+public:
+  struct Config {
+    const char* apSsid = "ESP32-Config";
+    const char* apPassword = "12345678";
+    uint32_t connectTimeoutMs = 8000;
+  };
+
+  enum class ConnectResult : uint8_t {
+    Success,
+    EmptySsid,
+    InvalidPassword,
+    Timeout,
+    AuthFailed,
+    Failed
+  };
+
+  enum class PortalState : uint8_t {
+    Idle,
+    Connecting,
+    Success,
+    Error
+  };
+
+public:
+  WiFiConfigPortal();
+  explicit WiFiConfigPortal(const Config& cfg);
+
+  WiFiConfigPortal(const WiFiConfigPortal&) = delete;
+  WiFiConfigPortal& operator=(const WiFiConfigPortal&) = delete;
+
+  bool begin();
+  void tick();
+
+  bool isConnected() const;
+  bool isPortalActive() const;
+
+  String localIp() const;
+  String connectedSsid() const;
+  String lastStatusMessage() const;
+  String connectionState() const;
+
+  void clearCredentials();
+
+private:
+  void loadCredentials();
+  void saveCredentials(const String& ssid, const String& password);
+
+  ConnectResult tryConnect();
+  void beginConnectionAttempt(const String& ssid, const String& password);
+  void processConnectionAttempt();
+
+  void startPortal();
+  void stopPortal();
+  void setupRoutes();
+
+  void handleRoot();
+  void handleSave();
+  void handleStatus();
+  void handleNotFound();
+
+  void configureWifiBase();
+
+  const char* connectResultMessage(ConnectResult result) const;
+  bool isValidSsid(const String& ssid) const;
+  bool isValidPassword(const String& password) const;
+
+private:
+  static const uint32_t PORTAL_CLOSE_DELAY_MS = 5000;
+
+  Config _cfg;
+  WebServer _server;
+  Preferences _prefs;
+
+  String _ssid;
+  String _password;
+  String _lastStatusMessage;
+
+  String _pendingSsid;
+  String _pendingPassword;
+
+  bool _portalActive = false;
+  bool _connectRequested = false;
+  bool _portalStopPending = false;
+
+  PortalState _state = PortalState::Idle;
+  ConnectResult _lastResult = ConnectResult::Failed;
+
+  uint32_t _connectStartMs = 0;
+  uint32_t _successAtMs = 0;
+};

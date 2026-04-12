@@ -17,7 +17,7 @@ App::App(TelemetryService& telemetry,
 void App::begin(const AppConfig& cfg) {
   _cfg = cfg;
 
-  _st.ssid = _cfg.wifiSsid;
+  _st.ssid = "";
   _st.ip = "-";
   _st.wifiConnected = false;
   _st.speedKmh = 0.0f;
@@ -38,36 +38,12 @@ void App::begin(const AppConfig& cfg) {
   _fuelGauge.begin();
   _tireTempGauge.begin();
 
-  connectWifiWithTimeout();
-
   _telemetry.begin(_cfg.udpPort);
 
   updateUiWifiFields();
   applyTelemetryToUi();
   _ui.setStatus(_st);
   _ui.tick();
-}
-
-bool App::connectWifiWithTimeout() {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(_cfg.wifiSsid, _cfg.wifiPass);
-
-  const uint32_t start = millis();
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(150);
-
-    const uint32_t nowMicros = micros();
-    _speedGauge.tick(nowMicros);
-    _rpmGauge.tick(nowMicros);
-    _fuelGauge.tick(nowMicros);
-    _tireTempGauge.tick(nowMicros);
-
-    if (millis() - start > _cfg.wifiConnectTimeoutMs) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 void App::updateUiWifiFields() {
@@ -78,7 +54,7 @@ void App::updateUiWifiFields() {
     _st.ssid = WiFi.SSID();
     _st.ip = WiFi.localIP().toString();
   } else {
-    _st.ssid = _cfg.wifiSsid;
+    _st.ssid = "Nao conectado";
     _st.ip = "-";
   }
 }
