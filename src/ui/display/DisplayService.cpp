@@ -1,6 +1,6 @@
-#include "DisplayService.h"
-#include "display/Layout0Basic.h"
-#include "display/Layout1Minimal.h"
+#include "ui/display/DisplayService.h"
+#include "ui/display/Layout0Basic.h"
+#include "ui/display/Layout1Minimal.h"
 
 static Layout0Basic g_layout0;
 static Layout1Minimal g_layout1;

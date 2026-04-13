@@ -16,7 +16,7 @@ O sistema deve controlar o motor do painel de instrumentos que indica a velocida
 O sistema deve controlar o motor do painel de instrumentos que indica a rotação do motor.
 
 ## RF06 – Controle de indicador de marcha
-O sistema deve controlar o Display OLED presente no painel de instrumentos que indica a marcha em que o veículo está engatado.
+O sistema deve controlar o display TFT presente no painel de instrumentos que indica a marcha em que o veículo está engatado.
 
 ## RF07 – Detecção automática de módulos conectados
 O sistema deve identificar automaticamente a conexão e desconexão de atuadores modulares.

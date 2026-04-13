@@ -1,4 +1,4 @@
-#include "TireTempGauge.h"
+#include "instruments/TireTempGauge.h"
 #include <math.h>
 
 TireTempGauge::TireTempGauge(GaugeMotorTmc2208& motor, const Config& cfg)

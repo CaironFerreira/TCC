@@ -22,10 +22,10 @@
 
 ---
 
-## UC03 – Exibir marcha no display OLED
+## UC03 – Exibir marcha no display TFT
 **Ator:** Jogador de simulação  
 **Objetivo:** Visualizar a marcha engatada fisicamente.  
-**Resumo:** Sistema recebe marcha → interpreta dado → atualiza display OLED.  
+**Resumo:** Sistema recebe marcha → interpreta dado → atualiza display TFT.  
 **RF Relacionados:** RF06  
 **RNF Relacionados:** RNF01  
 **Histórias Relacionadas:** Story 3 (Jogador)

@@ -1,4 +1,4 @@
-#include "GaugeMotorTmc2208.h"
+#include "drivers/motors/GaugeMotorTmc2208.h"
 
 GaugeMotorTmc2208::GaugeMotorTmc2208(const Config& cfg)
 : _cfg(cfg) {}

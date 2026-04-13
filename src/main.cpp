@@ -1,17 +1,16 @@
 #include <Arduino.h>
-#include <WiFi.h>
 
-#include "BoardConfig.h"
+#include "config/BoardConfig.h"
 #include "drivers/network/wifi/WiFiConfigPortal.h"
 
 #include "drivers/network/udp/UdpReceiver.h"
-#include "decoders/Forza7Decoder.h"
-#include "control/TelemetryService.h"
-#include "control/DisplayService.h"
-#include "control/instruments/SpeedGauge.h"
-#include "control/instruments/RpmGauge.h"
-#include "control/instruments/FuelGauge.h"
-#include "control/instruments/TireTempGauge.h"
+#include "telemetry/decoders/Forza7Decoder.h"
+#include "telemetry/TelemetryService.h"
+#include "ui/display/DisplayService.h"
+#include "instruments/SpeedGauge.h"
+#include "instruments/RpmGauge.h"
+#include "instruments/FuelGauge.h"
+#include "instruments/TireTempGauge.h"
 #include "drivers/motors/GaugeMotorTmc2208.h"
 #include "app/App.h"
 
@@ -128,12 +127,7 @@ static TireTempGauge::Config makeTireTempGaugeConfig() {
 static AppConfig makeAppConfig() {
   AppConfig cfg;
 
-  // Agora o Wi-Fi já deve estar conectado antes de chamar app.begin().
-  // O App não deve mais depender de SSID/senha fixos.
-  cfg.wifiSsid = "";
-  cfg.wifiPass = "";
   cfg.udpPort = UDP_PORT;
-  cfg.wifiConnectTimeoutMs = WIFI_CONNECT_TIMEOUT_MS;
 
   return cfg;
 }

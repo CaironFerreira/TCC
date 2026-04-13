@@ -1,4 +1,4 @@
-#include "FuelGauge.h"
+#include "instruments/FuelGauge.h"
 #include <math.h>
 
 FuelGauge::FuelGauge(GaugeMotorTmc2208& motor, const Config& cfg)

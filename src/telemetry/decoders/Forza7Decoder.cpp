@@ -1,4 +1,4 @@
-#include "Forza7Decoder.h"
+#include "telemetry/decoders/Forza7Decoder.h"
 #include <Arduino.h>
 #include <string.h>
 

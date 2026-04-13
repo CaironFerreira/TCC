@@ -1,5 +1,5 @@
-#include "WiFiConfigPortal.h"
-#include "../web/PortalHtml.h"
+#include "drivers/network/wifi/WiFiConfigPortal.h"
+#include "drivers/network/web/PortalHtml.h"
 
 WiFiConfigPortal::WiFiConfigPortal()
 : _cfg(), _server(80) {}

@@ -1,18 +1,15 @@
 #pragma once
 #include <Arduino.h>
 
-#include "../control/TelemetryService.h"
-#include "../control/DisplayService.h"
-#include "../control/instruments/SpeedGauge.h"
-#include "../control/instruments/RpmGauge.h"
-#include "../control/instruments/FuelGauge.h"
-#include "../control/instruments/TireTempGauge.h"
+#include "telemetry/TelemetryService.h"
+#include "ui/display/DisplayService.h"
+#include "instruments/SpeedGauge.h"
+#include "instruments/RpmGauge.h"
+#include "instruments/FuelGauge.h"
+#include "instruments/TireTempGauge.h"
 
 struct AppConfig {
-  const char* wifiSsid = nullptr;
-  const char* wifiPass = nullptr;
   uint16_t udpPort = 0;
-  uint32_t wifiConnectTimeoutMs = 15000;
   uint8_t displayLayout = 1;
 };
 

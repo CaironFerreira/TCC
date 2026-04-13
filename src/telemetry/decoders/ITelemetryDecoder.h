@@ -1,7 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#include "../domain/TelemetryFrame.h"
+#include "domain/TelemetryFrame.h"
 
 class ITelemetryDecoder {
 public:

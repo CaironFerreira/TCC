@@ -1,9 +1,9 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#include "../domain/TelemetryFrame.h"
-#include "../drivers/network//udp/UdpReceiver.h"
-#include "../decoders/ITelemetryDecoder.h"
+#include "domain/TelemetryFrame.h"
+#include "drivers/network/udp/UdpReceiver.h"
+#include "telemetry/decoders/ITelemetryDecoder.h"
 
 class TelemetryService {
 public:

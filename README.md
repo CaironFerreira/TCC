@@ -82,6 +82,7 @@ A documentação do projeto encontra-se organizada no diretório `docs/`, inclui
 - Requisitos Não Funcionais
 - Histórias de Usuário
 - Casos de Uso
+- Arquitetura do Firmware
 
 ---
 
@@ -91,7 +92,7 @@ A documentação do projeto encontra-se organizada no diretório `docs/`, inclui
 - C / C++ (firmware)
 - Comunicação via UDP
 - Motores de passo e servomotores
-- Display OLED
+- Display TFT ST7789 com TFT_eSPI
 - PlantUML para modelagem
 - Markdown para documentação
 

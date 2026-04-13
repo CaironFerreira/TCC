@@ -1,4 +1,4 @@
-#include "SpeedGauge.h"
+#include "instruments/SpeedGauge.h"
 #include <math.h>
 
 SpeedGauge::SpeedGauge(GaugeMotorTmc2208& motor, const Config& cfg)

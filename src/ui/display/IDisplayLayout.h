@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <TFT_eSPI.h>
-#include "../DisplayService.h"
+#include "ui/display/UiStatus.h"
 
 class IDisplayLayout {
 public:

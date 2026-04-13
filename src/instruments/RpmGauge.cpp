@@ -1,4 +1,4 @@
-#include "RpmGauge.h"
+#include "instruments/RpmGauge.h"
 #include <math.h>
 
 RpmGauge::RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg)

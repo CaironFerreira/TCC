@@ -117,7 +117,7 @@ Decodificar os pacotes UDP recebidos e extrair apenas os dados relevantes para o
 Exibir informações essenciais de telemetria em um display embarcado de forma clara e em tempo real.
 
 ### Backlog Planejado
-- Integração do display OLED
+- Integração do display TFT
 - Definição das informações exibidas
 - Atualização dinâmica dos dados
 

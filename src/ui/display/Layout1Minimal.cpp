@@ -1,4 +1,4 @@
-#include "Layout1Minimal.h"
+#include "ui/display/Layout1Minimal.h"
 #include <cstdio>
 #include <cstring>
 
@@ -21,7 +21,7 @@ void Layout1Minimal::formatGear(int gear, char* out, size_t outSize) const {
   if (gear < 0) {
     snprintf(out, outSize, "R");
   } else if (gear == 0) {
-    snprintf(out, outSize, "R");
+    snprintf(out, outSize, "N");
   } else {
     snprintf(out, outSize, "%d", gear);
   }

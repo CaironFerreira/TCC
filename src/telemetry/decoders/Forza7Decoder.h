@@ -1,5 +1,5 @@
 #pragma once
-#include "ITelemetryDecoder.h"
+#include "telemetry/decoders/ITelemetryDecoder.h"
 
 class Forza7Decoder : public ITelemetryDecoder {
 public:
