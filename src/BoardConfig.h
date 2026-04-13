@@ -4,7 +4,7 @@
 // ===================== WIFI / REDE =====================
 
 static constexpr uint16_t UDP_PORT = 5300;
-static constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;
+static constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 8000;
 
 // ===================== PINOS DOS MOTORES =====================
 // Velocímetro
@@ -31,7 +31,7 @@ static constexpr int PIN_EN_TEMP   = 17;
 static constexpr int32_t SPEED_RANGE_STEPS_0_TO_MAX = 180;
 static constexpr float   SPEED_MAX_KMH              = 220.0f;
 
-static constexpr int32_t RPM_RANGE_STEPS_0_TO_MAX   = 190;
+static constexpr int32_t RPM_RANGE_STEPS_0_TO_MAX   = 180;
 static constexpr float   RPM_MAX_VALUE              = 8000.0f;
 
 static constexpr int32_t FUEL_RANGE_STEPS_0_TO_MAX  = 180;

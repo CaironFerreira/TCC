@@ -13,25 +13,19 @@ struct UiStatus {
   float tireTempAvg = 0.0f;
 };
 
+class IDisplayLayout;
+
 class DisplayService {
 public:
-  bool begin();
+  bool begin(uint8_t layoutId);
   void setStatus(const UiStatus& s);
   void tick();
 
 private:
-  void draw(bool forceAll = false, unsigned long now = 0);
-  void formatGear(char* out, size_t outSize) const;
+  TFT_eSPI _display;
+  UiStatus _status;
 
-  TFT_eSPI display;
-  UiStatus status;
-  bool ready = false;
+  IDisplayLayout* _layout = nullptr;
 
-  unsigned long lastLineUpdate[5] = {0, 0, 0, 0, 0};
-
-  char lastWifiLine[40]  = {0};
-  char lastIpLine[24]    = {0};
-  char lastSpeedLine[20] = {0};
-  char lastInfoLine[32]  = {0};
-  char lastDebugLine[32] = {0};
+  unsigned long _lastRender = 0;
 };
