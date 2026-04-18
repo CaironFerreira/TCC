@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <DNSServer.h>
 #include <Preferences.h>
 #include <WebServer.h>
 #include <WiFi.h>
@@ -8,8 +9,8 @@
 class WiFiConfigPortal {
 public:
   struct Config {
-    const char* apSsid = "ESP32-Config";
-    const char* apPassword = "12345678";
+    const char* apSsid = "SimHub";
+    const char* apPassword = nullptr;
     uint32_t connectTimeoutMs = 8000;
   };
 
@@ -73,9 +74,13 @@ private:
   bool isValidPassword(const String& password) const;
 
 private:
+  enum : uint16_t {
+    DNS_PORT = 53
+  };
   static const uint32_t PORTAL_CLOSE_DELAY_MS = 5000;
 
   Config _cfg;
+  DNSServer _dnsServer;
   WebServer _server;
   Preferences _prefs;
 

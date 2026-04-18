@@ -29,6 +29,7 @@ bool WiFiConfigPortal::begin() {
 
 void WiFiConfigPortal::tick() {
   if (_portalActive) {
+    _dnsServer.processNextRequest();
     _server.handleClient();
   }
 
@@ -236,12 +237,16 @@ void WiFiConfigPortal::startPortal() {
   WiFi.mode(WIFI_AP);
   delay(100);
 
-  const bool ok = WiFi.softAP(_cfg.apSsid, _cfg.apPassword);
+  const bool hasApPassword = _cfg.apPassword != nullptr && _cfg.apPassword[0] != '\0';
+  const bool ok = hasApPassword ? WiFi.softAP(_cfg.apSsid, _cfg.apPassword)
+                                : WiFi.softAP(_cfg.apSsid);
   if (!ok) {
     _portalActive = false;
     _lastStatusMessage = "Falha ao iniciar portal.";
     return;
   }
+
+  _dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
 
   setupRoutes();
   _server.begin();
@@ -254,6 +259,9 @@ void WiFiConfigPortal::startPortal() {
 }
 
 void WiFiConfigPortal::stopPortal() {
+  _dnsServer.stop();
+  delay(50);
+
   _server.stop();
   delay(50);
 

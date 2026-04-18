@@ -17,8 +17,8 @@
 // ===== Portal Wi-Fi =====
 static WiFiConfigPortal::Config makePortalConfig() {
   WiFiConfigPortal::Config cfg;
-  cfg.apSsid = "ESP32-Config";
-  cfg.apPassword = "12345678";
+  cfg.apSsid = "SimHub";
+  cfg.apPassword = nullptr;
   cfg.connectTimeoutMs = WIFI_CONNECT_TIMEOUT_MS;
   return cfg;
 }

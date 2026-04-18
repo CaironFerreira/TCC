@@ -19,7 +19,15 @@ String PortalHtml::page(const char* deviceName) {
       "<label for='ssid'>Nome da rede</label>"
       "<input id='ssid' name='ssid' type='text' maxlength='32' placeholder='Ex.: MinhaRede' required>"
       "<label for='password'>Senha</label>"
-      "<input id='password' name='password' type='password' maxlength='63' placeholder='Digite a senha'>"
+      "<div class='password-wrap'>"
+        "<input id='password' name='password' type='password' maxlength='63' placeholder='Digite a senha'>"
+        "<button class='password-toggle' type='button' aria-label='Mostrar senha' onclick='togglePassword(this)'>"
+          "<svg viewBox='0 0 24 24' aria-hidden='true'>"
+            "<path d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z'/>"
+            "<circle cx='12' cy='12' r='3'/>"
+          "</svg>"
+        "</button>"
+      "</div>"
       "<button type='submit'>Conectar</button>"
     "</form>"
   );
@@ -57,7 +65,15 @@ String PortalHtml::errorPage(const char* deviceName, const String& ssid, const c
   content += F(
       "'>"
       "<label for='password'>Senha</label>"
-      "<input id='password' name='password' type='password' maxlength='63' placeholder='Digite a senha'>"
+      "<div class='password-wrap'>"
+        "<input id='password' name='password' type='password' maxlength='63' placeholder='Digite a senha'>"
+        "<button class='password-toggle' type='button' aria-label='Mostrar senha' onclick='togglePassword(this)'>"
+          "<svg viewBox='0 0 24 24' aria-hidden='true'>"
+            "<path d='M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z'/>"
+            "<circle cx='12' cy='12' r='3'/>"
+          "</svg>"
+        "</button>"
+      "</div>"
       "<button type='submit'>Tentar novamente</button>"
     "</form>"
   );
@@ -121,8 +137,16 @@ String PortalHtml::basePage(const String& title, const String& content) {
       "input{width:100%;padding:12px 13px;border:1px solid #2a4255;border-radius:12px;"
       "background:#0b141c;color:#fff;font-size:16px;outline:none}"
       "input:focus{border-color:#4aa3ff}"
+      ".password-wrap{position:relative}"
+      ".password-wrap input{padding-right:48px}"
       "button{width:100%;margin-top:16px;padding:12px 14px;border:0;border-radius:12px;"
       "background:#2d8cff;color:#fff;font-size:16px;font-weight:700;cursor:pointer}"
+      ".password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);"
+      "width:38px;height:38px;margin:0;padding:0;background:transparent;color:#a8bfd2;"
+      "line-height:1;border-radius:8px;display:flex;align-items:center;justify-content:center}"
+      ".password-toggle svg{width:21px;height:21px;fill:none;stroke:currentColor;"
+      "stroke-width:2;stroke-linecap:round;stroke-linejoin:round}"
+      ".password-toggle:focus{outline:1px solid #4aa3ff}"
       ".msg{padding:12px 14px;border-radius:12px;margin:0 0 14px;font-size:14px;line-height:1.4}"
       ".ok{background:#163525;border:1px solid #24563a;color:#d9ffe8}"
       ".error{background:#3a1717;border:1px solid #6d2c2c;color:#ffdede}"
@@ -137,7 +161,19 @@ String PortalHtml::basePage(const String& title, const String& content) {
   );
 
   html += content;
-  html += F("</div></body></html>");
+  html += F(
+    "</div>"
+    "<script>"
+      "function togglePassword(btn){"
+        "var input=btn.parentNode.querySelector('input');"
+        "if(!input)return;"
+        "var visible=input.type==='text';"
+        "input.type=visible?'password':'text';"
+        "btn.setAttribute('aria-label',visible?'Mostrar senha':'Ocultar senha');"
+      "}"
+    "</script>"
+    "</body></html>"
+  );
 
   return html;
 }
