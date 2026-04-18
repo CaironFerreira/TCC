@@ -6,7 +6,7 @@ static float fahrenheitToCelsius(float f) {
   return (f - 32.0f) * 5.0f / 9.0f;
 }
 
-TelemetryService::TelemetryService(UdpReceiver& receiver, ITelemetryDecoder& decoder)
+TelemetryService::TelemetryService(IPacketReceiver& receiver, ITelemetryDecoder& decoder)
   : _receiver(receiver), _decoder(decoder) {}
 
 bool TelemetryService::begin(uint16_t port) {

@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "drivers/motors/GaugeMotorTmc2208.h"
+#include "ports/IGaugeMotor.h"
 
 class SpeedGauge {
 public:
@@ -17,7 +17,7 @@ public:
     float calibrationFallStepsPerSec = 300.0f;
   };
 
-  SpeedGauge(GaugeMotorTmc2208& motor, const Config& cfg);
+  SpeedGauge(IGaugeMotor& motor, const Config& cfg);
 
   void begin();
   void calibrate();
@@ -28,7 +28,7 @@ private:
   float clampSpeed(float speedKmh) const;
   int32_t speedToSteps(float speedKmh) const;
 
-  GaugeMotorTmc2208& _motor;
+  IGaugeMotor& _motor;
   Config _cfg;
 
   float _currentSpeedKmh = 0.0f;

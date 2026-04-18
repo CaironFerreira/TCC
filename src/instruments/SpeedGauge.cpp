@@ -1,7 +1,7 @@
 #include "instruments/SpeedGauge.h"
 #include <math.h>
 
-SpeedGauge::SpeedGauge(GaugeMotorTmc2208& motor, const Config& cfg)
+SpeedGauge::SpeedGauge(IGaugeMotor& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void SpeedGauge::begin() {

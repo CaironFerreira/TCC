@@ -4,7 +4,10 @@
 // ===================== WIFI / REDE =====================
 
 static constexpr uint16_t UDP_PORT = 5300;
-static constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 8000;
+static constexpr uint32_t WIFI_CONNECT_TIMEOUT_MS = 12000;
+
+// ===================== ENTRADAS DIGITAIS =====================
+static constexpr int PIN_DISPLAY_LAYOUT_BUTTON = 16;
 
 // ===================== PINOS DOS MOTORES =====================
 // Velocímetro

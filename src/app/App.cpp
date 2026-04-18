@@ -1,13 +1,16 @@
 #include "app/App.h"
-#include <WiFi.h>
 
-App::App(TelemetryService& telemetry,
+App::App(IWifiConfigPortal& wifiPortal,
+         IButtonInput& layoutButton,
+         TelemetryService& telemetry,
          DisplayService& ui,
          SpeedGauge& speedGauge,
          RpmGauge& rpmGauge,
          FuelGauge& fuelGauge,
          TireTempGauge& tireTempGauge)
-  : _telemetry(telemetry),
+  : _wifiPortal(wifiPortal),
+    _layoutButton(layoutButton),
+    _telemetry(telemetry),
     _ui(ui),
     _speedGauge(speedGauge),
     _rpmGauge(rpmGauge),
@@ -17,6 +20,23 @@ App::App(TelemetryService& telemetry,
 void App::begin(const AppConfig& cfg) {
   _cfg = cfg;
 
+  resetStatus();
+  _layoutButton.begin();
+
+  _runtimeStarted = false;
+  _connectingScreenShown = false;
+  _portalScreenShown = false;
+
+  if (_wifiPortal.begin()) {
+    startRuntime();
+  } else if (_wifiPortal.isPortalActive()) {
+    showWifiConfigScreen();
+  } else {
+    showWifiConnectingScreen();
+  }
+}
+
+void App::resetStatus() {
   _st.ssid = "";
   _st.ip = "-";
   _st.wifiConnected = false;
@@ -30,6 +50,30 @@ void App::begin(const AppConfig& cfg) {
   _lastWifiMs = 0;
   _lastFuelUpdateMs = 0;
   _lastTempUpdateMs = 0;
+}
+
+void App::showWifiConfigScreen() {
+  _ui.begin(_cfg.displayLayout);
+  _ui.showMessage("Wi-Fi SimHub",
+                  "Conecte no Wi-Fi SimHub",
+                  "Abra http://simhub",
+                  "Informe rede e senha");
+
+  _portalScreenShown = true;
+}
+
+void App::showWifiConnectingScreen() {
+  _ui.begin(_cfg.displayLayout);
+  _ui.showMessage("Conectando Wi-Fi",
+                  "Usando rede salva",
+                  "Aguarde alguns segundos",
+                  "Portal abre se falhar");
+
+  _connectingScreenShown = true;
+}
+
+void App::startRuntime() {
+  resetStatus();
 
   _ui.begin(_cfg.displayLayout);
 
@@ -45,15 +89,18 @@ void App::begin(const AppConfig& cfg) {
 
   _ui.setStatus(_st);
   _ui.tick();
+
+  _runtimeStarted = true;
+  _connectingScreenShown = false;
+  _portalScreenShown = false;
 }
 
 void App::updateUiWifiFields() {
-  const wl_status_t wst = WiFi.status();
-  _st.wifiConnected = (wst == WL_CONNECTED);
+  _st.wifiConnected = _wifiPortal.isConnected();
 
   if (_st.wifiConnected) {
-    _st.ssid = WiFi.SSID();
-    _st.ip = WiFi.localIP().toString();
+    _st.ssid = _wifiPortal.connectedSsid();
+    _st.ip = _wifiPortal.localIp();
   } else {
     _st.ssid = "Nao conectado";
     _st.ip = "-";
@@ -67,10 +114,34 @@ void App::updateFastUiFields() {
 }
 
 void App::tick() {
-  _telemetry.tick();
+  _wifiPortal.tick();
+
+  if (_wifiPortal.isPortalActive()) {
+    if (!_portalScreenShown) {
+      showWifiConfigScreen();
+    }
+
+    return;
+  }
+
+  if (!_runtimeStarted && _wifiPortal.isConnected()) {
+    startRuntime();
+  }
+
+  if (!_runtimeStarted) {
+    if (!_connectingScreenShown) {
+      showWifiConnectingScreen();
+    }
+
+    return;
+  }
 
   const uint32_t now = millis();
   const uint32_t nowMicros = micros();
+
+  updateLayoutButton(now);
+
+  _telemetry.tick();
 
   // gauges rápidos
   _speedGauge.setSpeedKmh(_telemetry.speedKmh());
@@ -112,5 +183,18 @@ void App::tick() {
     updateFastUiFields();
     _ui.setStatus(_st);
     _ui.tick();
+  }
+}
+
+void App::updateLayoutButton(uint32_t now) {
+  _layoutButton.tick(now);
+
+  if (_layoutButton.wasPressed()) {
+    updateFastUiFields();
+    _ui.setStatus(_st);
+
+    if (_ui.nextLayout()) {
+      _ui.tick();
+    }
   }
 }

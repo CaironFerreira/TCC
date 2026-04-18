@@ -1,7 +1,8 @@
 #pragma once
 #include <Arduino.h>
+#include "ports/IGaugeMotor.h"
 
-class GaugeMotorTmc2208 {
+class GaugeMotorTmc2208 : public IGaugeMotor {
 public:
   struct Config {
     int pinStep = -1;
@@ -13,20 +14,20 @@ public:
 
   explicit GaugeMotorTmc2208(const Config& cfg);
 
-  void begin();
-  void enable(bool on);
-  void tick(uint32_t nowMicros);
+  void begin() override;
+  void enable(bool on) override;
+  void tick(uint32_t nowMicros) override;
 
   // Nova arquitetura: cada comando já informa as velocidades de subida/descida
-  void moveTo(int32_t targetSteps, float riseStepsPerSec, float fallStepsPerSec);
+  void moveTo(int32_t targetSteps, float riseStepsPerSec, float fallStepsPerSec) override;
 
   // Usado na calibração para redefinir a posição lógica atual do ponteiro
-  void setCurrentPosition(int32_t steps);
+  void setCurrentPosition(int32_t steps) override;
 
-  bool isMoving() const;
+  bool isMoving() const override;
 
-  int32_t currentPosition() const { return _currentPositionSteps; }
-  int32_t targetPosition() const { return _targetPositionSteps; }
+  int32_t currentPosition() const override { return _currentPositionSteps; }
+  int32_t targetPosition() const override { return _targetPositionSteps; }
 
 private:
   void setDirection(bool forward);

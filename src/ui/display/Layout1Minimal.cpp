@@ -34,8 +34,13 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
 
   char buf[32];
 
-  const int topY = 30;
-  const int bottomY = 179;
+  const int16_t w = _display->width();
+  const int16_t h = _display->height();
+  const int16_t centerX = w / 2;
+  const int16_t marginX = 22;
+  const int16_t rightX = w - marginX;
+  const int16_t topY = 30;
+  const int16_t bottomY = h - 61;
 
   // marcha grande no centro
   formatGear(s.gear, buf, sizeof(buf));
@@ -43,10 +48,10 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
     strncpy(_lastGear, buf, sizeof(_lastGear) - 1);
     _lastGear[sizeof(_lastGear) - 1] = '\0';
 
-    clearValueBox(85, 60, 150, 90);
+    clearValueBox(0, 60, w, 90);
     _display->setTextSize(5);
     _display->setTextColor(TFT_WHITE, TFT_BLACK);
-    _display->drawCentreString(_lastGear, 160, 75, 2);
+    _display->drawCentreString(_lastGear, centerX, 75, 2);
   }
 
   // combustível
@@ -55,9 +60,9 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
     strncpy(_lastFuel, buf, sizeof(_lastFuel) - 1);
     _lastFuel[sizeof(_lastFuel) - 1] = '\0';
 
-    clearValueBox(170, topY, 130, 24);
+    clearValueBox(w / 2, topY, w / 2 - marginX, 24);
     _display->setTextSize(2);
-    _display->drawRightString(_lastFuel, 300, topY, 2);
+    _display->drawRightString(_lastFuel, rightX, topY, 2);
   }
 
   // velocidade
@@ -66,9 +71,9 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
     strncpy(_lastSpeed, buf, sizeof(_lastSpeed) - 1);
     _lastSpeed[sizeof(_lastSpeed) - 1] = '\0';
 
-    clearValueBox(20, bottomY, 120, 24);
+    clearValueBox(marginX, bottomY, w / 2 - marginX, 24);
     _display->setTextSize(2);
-    _display->drawString(_lastSpeed, 20, bottomY, 2);
+    _display->drawString(_lastSpeed, marginX, bottomY, 2);
   }
 
   // rpm
@@ -77,8 +82,8 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
     strncpy(_lastRpm, buf, sizeof(_lastRpm) - 1);
     _lastRpm[sizeof(_lastRpm) - 1] = '\0';
 
-    clearValueBox(170, bottomY, 130, 24);
+    clearValueBox(w / 2, bottomY, w / 2 - marginX, 24);
     _display->setTextSize(2);
-    _display->drawRightString(_lastRpm, 300, bottomY, 2);
+    _display->drawRightString(_lastRpm, rightX, bottomY, 2);
   }
 }

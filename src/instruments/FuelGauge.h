@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "drivers/motors/GaugeMotorTmc2208.h"
+#include "ports/IGaugeMotor.h"
 
 class FuelGauge {
 public:
@@ -18,7 +18,7 @@ public:
     float calibrationFallStepsPerSec = 300.0f;
   };
 
-  FuelGauge(GaugeMotorTmc2208& motor, const Config& cfg);
+  FuelGauge(IGaugeMotor& motor, const Config& cfg);
 
   void begin();
   void calibrate();
@@ -32,7 +32,7 @@ private:
   float clampFuelLevel(float level) const;
   int32_t fuelToSteps(float level) const;
 
-  GaugeMotorTmc2208& _motor;
+  IGaugeMotor& _motor;
   Config _cfg;
 
   float _currentFuelLevel = 0.0f;

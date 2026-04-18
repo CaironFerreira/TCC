@@ -1,7 +1,7 @@
 #include "instruments/TireTempGauge.h"
 #include <math.h>
 
-TireTempGauge::TireTempGauge(GaugeMotorTmc2208& motor, const Config& cfg)
+TireTempGauge::TireTempGauge(IGaugeMotor& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void TireTempGauge::begin() {

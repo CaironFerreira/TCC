@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "drivers/motors/GaugeMotorTmc2208.h"
+#include "ports/IGaugeMotor.h"
 
 class TireTempGauge {
 public:
@@ -18,7 +18,7 @@ public:
     float calibrationFallStepsPerSec = 300.0f;
   };
 
-  TireTempGauge(GaugeMotorTmc2208& motor, const Config& cfg);
+  TireTempGauge(IGaugeMotor& motor, const Config& cfg);
 
   void begin();
   void calibrate();
@@ -32,7 +32,7 @@ private:
   float clampTemp(float temp) const;
   int32_t tempToSteps(float temp) const;
 
-  GaugeMotorTmc2208& _motor;
+  IGaugeMotor& _motor;
   Config _cfg;
 
   float _currentTemp = 20.0f;

@@ -1,6 +1,13 @@
 #include "drivers/network/wifi/WiFiConfigPortal.h"
 #include "drivers/network/web/PortalHtml.h"
 
+namespace {
+
+static const char* WIFI_PREFS_NAMESPACE = "simhub_wifi";
+static const char* LEGACY_WIFI_PREFS_NAMESPACE = "wifi";
+
+}
+
 WiFiConfigPortal::WiFiConfigPortal()
 : _cfg(), _server(80) {}
 
@@ -12,15 +19,8 @@ bool WiFiConfigPortal::begin() {
   loadCredentials();
 
   if (!_ssid.isEmpty()) {
-    const ConnectResult result = tryConnect();
-    if (result == ConnectResult::Success) {
-      _portalActive = false;
-      _portalStopPending = false;
-      _state = PortalState::Success;
-      _lastResult = ConnectResult::Success;
-      _lastStatusMessage = connectResultMessage(ConnectResult::Success);
-      return true;
-    }
+    beginConnectionAttempt(_ssid, _password);
+    return false;
   }
 
   startPortal();
@@ -41,6 +41,8 @@ void WiFiConfigPortal::tick() {
   if (_state == PortalState::Connecting) {
     processConnectionAttempt();
   }
+
+  retrySavedCredentialsIfNeeded();
 
   if (_portalStopPending && (millis() - _successAtMs >= PORTAL_CLOSE_DELAY_MS)) {
     _portalStopPending = false;
@@ -91,7 +93,11 @@ String WiFiConfigPortal::connectionState() const {
 }
 
 void WiFiConfigPortal::clearCredentials() {
-  _prefs.begin("wifi", false);
+  _prefs.begin(WIFI_PREFS_NAMESPACE, false);
+  _prefs.clear();
+  _prefs.end();
+
+  _prefs.begin(LEGACY_WIFI_PREFS_NAMESPACE, false);
   _prefs.clear();
   _prefs.end();
 
@@ -105,14 +111,27 @@ void WiFiConfigPortal::clearCredentials() {
 }
 
 void WiFiConfigPortal::loadCredentials() {
-  _prefs.begin("wifi", true);
+  _prefs.begin(WIFI_PREFS_NAMESPACE, true);
   _ssid = _prefs.getString("ssid", "");
   _password = _prefs.getString("password", "");
   _prefs.end();
+
+  if (!_ssid.isEmpty()) {
+    return;
+  }
+
+  _prefs.begin(LEGACY_WIFI_PREFS_NAMESPACE, true);
+  _ssid = _prefs.getString("ssid", "");
+  _password = _prefs.getString("password", "");
+  _prefs.end();
+
+  if (!_ssid.isEmpty()) {
+    saveCredentials(_ssid, _password);
+  }
 }
 
 void WiFiConfigPortal::saveCredentials(const String& ssid, const String& password) {
-  _prefs.begin("wifi", false);
+  _prefs.begin(WIFI_PREFS_NAMESPACE, false);
   _prefs.putString("ssid", ssid);
   _prefs.putString("password", password);
   _prefs.end();
@@ -134,7 +153,7 @@ WiFiConfigPortal::ConnectResult WiFiConfigPortal::tryConnect() {
   WiFi.mode(WIFI_STA);
   delay(100);
 
-  WiFi.disconnect(false, true);
+  WiFi.disconnect(false, false);
   delay(100);
 
   WiFi.begin(_ssid.c_str(), _password.c_str());
@@ -150,7 +169,7 @@ WiFiConfigPortal::ConnectResult WiFiConfigPortal::tryConnect() {
     }
 
     if (status == WL_CONNECT_FAILED) {
-      WiFi.disconnect(false, true);
+      WiFi.disconnect(false, false);
       _lastStatusMessage = connectResultMessage(ConnectResult::AuthFailed);
       return ConnectResult::AuthFailed;
     }
@@ -158,7 +177,7 @@ WiFiConfigPortal::ConnectResult WiFiConfigPortal::tryConnect() {
     delay(100);
   }
 
-  WiFi.disconnect(false, true);
+  WiFi.disconnect(false, false);
   _lastStatusMessage = connectResultMessage(ConnectResult::Timeout);
   return ConnectResult::Timeout;
 }
@@ -168,6 +187,14 @@ void WiFiConfigPortal::beginConnectionAttempt(const String& ssid, const String& 
     _lastResult = ConnectResult::EmptySsid;
     _lastStatusMessage = connectResultMessage(_lastResult);
     _state = PortalState::Error;
+    _lastAttemptEndMs = millis();
+
+    if (!_portalActive) {
+      startPortal();
+      _lastResult = ConnectResult::EmptySsid;
+      _lastStatusMessage = connectResultMessage(_lastResult);
+      _state = PortalState::Error;
+    }
     return;
   }
 
@@ -175,6 +202,14 @@ void WiFiConfigPortal::beginConnectionAttempt(const String& ssid, const String& 
     _lastResult = ConnectResult::InvalidPassword;
     _lastStatusMessage = connectResultMessage(_lastResult);
     _state = PortalState::Error;
+    _lastAttemptEndMs = millis();
+
+    if (!_portalActive) {
+      startPortal();
+      _lastResult = ConnectResult::InvalidPassword;
+      _lastStatusMessage = connectResultMessage(_lastResult);
+      _state = PortalState::Error;
+    }
     return;
   }
 
@@ -187,10 +222,10 @@ void WiFiConfigPortal::beginConnectionAttempt(const String& ssid, const String& 
 
   configureWifiBase();
 
-  WiFi.mode(WIFI_AP_STA);
+  WiFi.mode(_portalActive ? WIFI_AP_STA : WIFI_STA);
   delay(100);
 
-  WiFi.disconnect(false, true);
+  WiFi.disconnect(false, false);
   delay(100);
 
   WiFi.begin(_pendingSsid.c_str(), _pendingPassword.c_str());
@@ -209,32 +244,73 @@ void WiFiConfigPortal::processConnectionAttempt() {
     _lastStatusMessage = connectResultMessage(_lastResult);
     _state = PortalState::Success;
 
-    _successAtMs = millis();
-    _portalStopPending = true;
+    if (_portalActive) {
+      _successAtMs = millis();
+      _portalStopPending = true;
+    }
     return;
   }
 
   if (status == WL_CONNECT_FAILED) {
-    WiFi.disconnect(false, true);
+    WiFi.disconnect(false, false);
     _lastResult = ConnectResult::AuthFailed;
     _lastStatusMessage = connectResultMessage(_lastResult);
     _state = PortalState::Error;
+    _lastAttemptEndMs = millis();
+
+    if (!_portalActive) {
+      startPortal();
+      _lastResult = ConnectResult::AuthFailed;
+      _lastStatusMessage = connectResultMessage(_lastResult);
+      _state = PortalState::Error;
+    }
     return;
   }
 
   if ((millis() - _connectStartMs) >= _cfg.connectTimeoutMs) {
-    WiFi.disconnect(false, true);
+    WiFi.disconnect(false, false);
     _lastResult = ConnectResult::Timeout;
     _lastStatusMessage = connectResultMessage(_lastResult);
     _state = PortalState::Error;
+    _lastAttemptEndMs = millis();
+
+    if (!_portalActive) {
+      startPortal();
+      _lastResult = ConnectResult::Timeout;
+      _lastStatusMessage = connectResultMessage(_lastResult);
+      _state = PortalState::Error;
+    }
     return;
   }
+}
+
+void WiFiConfigPortal::retrySavedCredentialsIfNeeded() {
+  if (!_portalActive || _portalStopPending || _state == PortalState::Connecting) {
+    return;
+  }
+
+  if (!isValidSsid(_ssid) || !isValidPassword(_password)) {
+    return;
+  }
+
+  if (_lastResult == ConnectResult::AuthFailed ||
+      _lastResult == ConnectResult::InvalidPassword ||
+      _lastResult == ConnectResult::EmptySsid) {
+    return;
+  }
+
+  const uint32_t now = millis();
+  if ((now - _lastAttemptEndMs) < SAVED_RETRY_INTERVAL_MS) {
+    return;
+  }
+
+  beginConnectionAttempt(_ssid, _password);
 }
 
 void WiFiConfigPortal::startPortal() {
   configureWifiBase();
 
-  WiFi.mode(WIFI_AP);
+  WiFi.mode(_ssid.isEmpty() ? WIFI_AP : WIFI_AP_STA);
   delay(100);
 
   const bool hasApPassword = _cfg.apPassword != nullptr && _cfg.apPassword[0] != '\0';
@@ -389,7 +465,7 @@ void WiFiConfigPortal::handleNotFound() {
 void WiFiConfigPortal::configureWifiBase() {
   WiFi.persistent(false);
   WiFi.setSleep(false);
-  WiFi.setAutoReconnect(false);
+  WiFi.setAutoReconnect(true);
 }
 
 const char* WiFiConfigPortal::connectResultMessage(ConnectResult result) const {

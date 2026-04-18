@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-#include "drivers/motors/GaugeMotorTmc2208.h"
+#include "ports/IGaugeMotor.h"
 
 class RpmGauge {
 public:
@@ -17,7 +17,7 @@ public:
     float calibrationFallStepsPerSec = 300.0f;
   };
 
-  RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg);
+  RpmGauge(IGaugeMotor& motor, const Config& cfg);
 
   void begin();
   void calibrate();
@@ -31,7 +31,7 @@ private:
   int32_t rpmToSteps(float rpm) const;
   float clampRpm(float rpm) const;
 
-  GaugeMotorTmc2208& _motor;
+  IGaugeMotor& _motor;
   Config _cfg;
 
   float _currentRpm = 0.0f;

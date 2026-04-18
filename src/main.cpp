@@ -3,6 +3,7 @@
 #include "config/BoardConfig.h"
 #include "drivers/network/wifi/WiFiConfigPortal.h"
 
+#include "drivers/input/GpioButtonInput.h"
 #include "drivers/network/udp/UdpReceiver.h"
 #include "telemetry/decoders/Forza7Decoder.h"
 #include "telemetry/TelemetryService.h"
@@ -24,12 +25,22 @@ static WiFiConfigPortal::Config makePortalConfig() {
 }
 
 static WiFiConfigPortal wifiPortal(makePortalConfig());
-static bool appStarted = false;
+
+static GpioButtonInput::Config makeLayoutButtonConfig() {
+  GpioButtonInput::Config cfg;
+  cfg.pin = PIN_DISPLAY_LAYOUT_BUTTON;
+  cfg.activeLow = false;
+  cfg.useInternalPullup = false;
+  cfg.useInternalPulldown = true;
+  cfg.debounceMs = 25;
+  return cfg;
+}
 
 // ===== Core =====
 static UdpReceiver udp;
 static Forza7Decoder decoder;
 static TelemetryService telemetry(udp, decoder);
+static GpioButtonInput layoutButton(makeLayoutButtonConfig());
 
 // ===== UI =====
 static DisplayService ui;
@@ -155,6 +166,8 @@ static FuelGauge fuelGauge(fuelMotor, fuelGaugeCfg);
 static TireTempGauge tireTempGauge(tempMotor, tireTempGaugeCfg);
 
 static App app(
+  wifiPortal,
+  layoutButton,
   telemetry,
   ui,
   speedGauge,
@@ -164,26 +177,9 @@ static App app(
 );
 
 void setup() {
-  wifiPortal.begin();
-
-  if (wifiPortal.isConnected()) {
-    app.begin(makeAppConfig());
-    appStarted = true;
-  }
+  app.begin(makeAppConfig());
 }
 
 void loop() {
-  if (wifiPortal.isPortalActive()) {
-    wifiPortal.tick();
-    return;
-  }
-
-  if (!appStarted && wifiPortal.isConnected()) {
-    app.begin(makeAppConfig());
-    appStarted = true;
-  }
-
-  if (appStarted) {
-    app.tick();
-  }
+  app.tick();
 }

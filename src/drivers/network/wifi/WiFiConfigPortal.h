@@ -5,8 +5,9 @@
 #include <Preferences.h>
 #include <WebServer.h>
 #include <WiFi.h>
+#include "ports/IWifiConfigPortal.h"
 
-class WiFiConfigPortal {
+class WiFiConfigPortal : public IWifiConfigPortal {
 public:
   struct Config {
     const char* apSsid = "SimHub";
@@ -37,14 +38,14 @@ public:
   WiFiConfigPortal(const WiFiConfigPortal&) = delete;
   WiFiConfigPortal& operator=(const WiFiConfigPortal&) = delete;
 
-  bool begin();
-  void tick();
+  bool begin() override;
+  void tick() override;
 
-  bool isConnected() const;
-  bool isPortalActive() const;
+  bool isConnected() const override;
+  bool isPortalActive() const override;
 
-  String localIp() const;
-  String connectedSsid() const;
+  String localIp() const override;
+  String connectedSsid() const override;
   String lastStatusMessage() const;
   String connectionState() const;
 
@@ -57,6 +58,7 @@ private:
   ConnectResult tryConnect();
   void beginConnectionAttempt(const String& ssid, const String& password);
   void processConnectionAttempt();
+  void retrySavedCredentialsIfNeeded();
 
   void startPortal();
   void stopPortal();
@@ -77,7 +79,8 @@ private:
   enum : uint16_t {
     DNS_PORT = 53
   };
-  static const uint32_t PORTAL_CLOSE_DELAY_MS = 5000;
+  static const uint32_t PORTAL_CLOSE_DELAY_MS = 2000;
+  static const uint32_t SAVED_RETRY_INTERVAL_MS = 10000;
 
   Config _cfg;
   DNSServer _dnsServer;
@@ -100,4 +103,5 @@ private:
 
   uint32_t _connectStartMs = 0;
   uint32_t _successAtMs = 0;
+  uint32_t _lastAttemptEndMs = 0;
 };

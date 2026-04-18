@@ -2,12 +2,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "domain/TelemetryFrame.h"
-#include "drivers/network/udp/UdpReceiver.h"
+#include "ports/IPacketReceiver.h"
 #include "telemetry/decoders/ITelemetryDecoder.h"
 
 class TelemetryService {
 public:
-  TelemetryService(UdpReceiver& receiver, ITelemetryDecoder& decoder);
+  TelemetryService(IPacketReceiver& receiver, ITelemetryDecoder& decoder);
 
   bool begin(uint16_t port);
   void tick();
@@ -24,7 +24,7 @@ public:
   float tireTempAvgC() const;
 
 private:
-  UdpReceiver& _receiver;
+  IPacketReceiver& _receiver;
   ITelemetryDecoder& _decoder;
 
   TelemetryFrame _last;

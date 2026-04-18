@@ -1,7 +1,7 @@
 #include "instruments/FuelGauge.h"
 #include <math.h>
 
-FuelGauge::FuelGauge(GaugeMotorTmc2208& motor, const Config& cfg)
+FuelGauge::FuelGauge(IGaugeMotor& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void FuelGauge::begin() {

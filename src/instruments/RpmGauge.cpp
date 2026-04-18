@@ -1,7 +1,7 @@
 #include "instruments/RpmGauge.h"
 #include <math.h>
 
-RpmGauge::RpmGauge(GaugeMotorTmc2208& motor, const Config& cfg)
+RpmGauge::RpmGauge(IGaugeMotor& motor, const Config& cfg)
 : _motor(motor), _cfg(cfg) {}
 
 void RpmGauge::begin() {
