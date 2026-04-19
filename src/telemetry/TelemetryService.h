@@ -20,8 +20,14 @@ public:
   float speedKmh() const;
   float rpm() const;
   int gear() const;
+  int lapNumber() const;
+  int racePosition() const;
   float fuelLevel() const;
   float tireTempAvgC() const;
+  float tireTempFLC() const;
+  float tireTempFRC() const;
+  float tireTempRLC() const;
+  float tireTempRRC() const;
 
 private:
   IPacketReceiver& _receiver;

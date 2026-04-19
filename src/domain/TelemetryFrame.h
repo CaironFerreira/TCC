@@ -8,7 +8,9 @@ struct TelemetryFrame {
   // MVP atual
   float speedKmh = 0.0f;
   uint16_t rpm = 0;
-  int8_t gear = 0; // -1 = R, 0 = N, 1.. = marchas
+  int8_t gear = 0; // Forza 7: -1 = R, 0 = desconhecido/sem telemetria, 1.. = marchas
+  uint16_t lapNumber = 0;
+  uint8_t racePosition = 0;
 
   // novos dados
   float fuel = 0.0f;
@@ -26,6 +28,8 @@ struct TelemetryFrame {
     speedKmh = 0.0f;
     rpm = 0;
     gear = 0;
+    lapNumber = 0;
+    racePosition = 0;
 
     fuel = 0.0f;
 

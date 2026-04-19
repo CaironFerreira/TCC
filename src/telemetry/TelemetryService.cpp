@@ -80,6 +80,22 @@ int TelemetryService::gear() const {
   return _last.gear;
 }
 
+int TelemetryService::lapNumber() const {
+  if (!_last.valid) {
+    return 0;
+  }
+
+  return _last.lapNumber;
+}
+
+int TelemetryService::racePosition() const {
+  if (!_last.valid) {
+    return 0;
+  }
+
+  return _last.racePosition;
+}
+
 float TelemetryService::fuelLevel() const {
   if (!_last.valid) {
     return 0.0f;
@@ -102,4 +118,36 @@ float TelemetryService::tireTempAvgC() const {
   }
 
   return fahrenheitToCelsius(_last.tireTempAvg);
+}
+
+float TelemetryService::tireTempFLC() const {
+  if (!_last.valid || !isfinite(_last.tireTempFL)) {
+    return 0.0f;
+  }
+
+  return fahrenheitToCelsius(_last.tireTempFL);
+}
+
+float TelemetryService::tireTempFRC() const {
+  if (!_last.valid || !isfinite(_last.tireTempFR)) {
+    return 0.0f;
+  }
+
+  return fahrenheitToCelsius(_last.tireTempFR);
+}
+
+float TelemetryService::tireTempRLC() const {
+  if (!_last.valid || !isfinite(_last.tireTempRL)) {
+    return 0.0f;
+  }
+
+  return fahrenheitToCelsius(_last.tireTempRL);
+}
+
+float TelemetryService::tireTempRRC() const {
+  if (!_last.valid || !isfinite(_last.tireTempRR)) {
+    return 0.0f;
+  }
+
+  return fahrenheitToCelsius(_last.tireTempRR);
 }

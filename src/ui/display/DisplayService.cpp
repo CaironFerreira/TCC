@@ -1,21 +1,26 @@
 #include "ui/display/DisplayService.h"
 #include "ui/display/Layout0Basic.h"
 #include "ui/display/Layout1Minimal.h"
+#include "ui/display/Layout2Performance.h"
+#include "ui/display/Layout3Tires.h"
 
 namespace {
 
 static Layout0Basic g_layout0;
 static Layout1Minimal g_layout1;
+static Layout2Performance g_layout2;
+static Layout3Tires g_layout3;
 
 struct LayoutEntry {
   uint8_t id;
   IDisplayLayout* layout;
 };
 
-// Registre novos layouts aqui para que o botão consiga navegar entre eles.
 static LayoutEntry g_layouts[] = {
   {0, &g_layout0},
-  {1, &g_layout1}
+  {1, &g_layout1},
+  {2, &g_layout2},
+  {3, &g_layout3}
 };
 
 static constexpr size_t LAYOUT_COUNT = sizeof(g_layouts) / sizeof(g_layouts[0]);

@@ -12,6 +12,10 @@ static inline uint8_t readU8(const uint8_t* p) {
   return *p;
 }
 
+static inline uint16_t readU16LE(const uint8_t* p) {
+  return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
+
 bool Forza7Decoder::decode(const uint8_t* data, size_t len, TelemetryFrame& out) {
   // FM7 / Dash
   if (!data || len < 311) {
@@ -27,6 +31,8 @@ bool Forza7Decoder::decode(const uint8_t* data, size_t len, TelemetryFrame& out)
   constexpr size_t OFF_TIRE_TEMP_RL = 264;  // F32 TireTempRearLeft
   constexpr size_t OFF_TIRE_TEMP_RR = 268;  // F32 TireTempRearRight
   constexpr size_t OFF_FUEL         = 276;  // F32 Fuel
+  constexpr size_t OFF_LAP_NUMBER   = 300;  // U16 LapNumber
+  constexpr size_t OFF_RACE_POS     = 302;  // U8 RacePosition
   constexpr size_t OFF_GEAR         = 307;  // U8 Gear
 
   const float rpm = readF32LE(data + OFF_RPM);
@@ -38,6 +44,8 @@ bool Forza7Decoder::decode(const uint8_t* data, size_t len, TelemetryFrame& out)
   const float tireTempRR = readF32LE(data + OFF_TIRE_TEMP_RR);
 
   const float fuel = readF32LE(data + OFF_FUEL);
+  const uint16_t lapNumber = readU16LE(data + OFF_LAP_NUMBER);
+  const uint8_t racePosition = readU8(data + OFF_RACE_POS);
   const uint8_t gear = readU8(data + OFF_GEAR);
 
   out.valid = true;
@@ -45,7 +53,9 @@ bool Forza7Decoder::decode(const uint8_t* data, size_t len, TelemetryFrame& out)
 
   out.rpm = (uint16_t)rpm;
   out.speedKmh = speedMs * 3.6f;
-  out.gear = (int8_t)gear;
+  out.gear = (gear == 0) ? -1 : (int8_t)gear;
+  out.lapNumber = lapNumber;
+  out.racePosition = racePosition;
 
   out.fuel = fuel;
 

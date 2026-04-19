@@ -40,11 +40,18 @@ void App::resetStatus() {
   _st.ssid = "";
   _st.ip = "-";
   _st.wifiConnected = false;
+  _st.telemetryValid = false;
   _st.speedKmh = 0.0f;
   _st.gear = 0;
   _st.rpm = 0;
+  _st.lapNumber = 0;
+  _st.racePosition = 0;
   _st.fuel = 0.0f;
   _st.tireTempAvg = 0.0f;
+  _st.tireTempFL = 0.0f;
+  _st.tireTempFR = 0.0f;
+  _st.tireTempRL = 0.0f;
+  _st.tireTempRR = 0.0f;
 
   _lastUiMs = 0;
   _lastWifiMs = 0;
@@ -108,9 +115,12 @@ void App::updateUiWifiFields() {
 }
 
 void App::updateFastUiFields() {
+  _st.telemetryValid = _telemetry.hasValidTelemetry();
   _st.speedKmh = _telemetry.speedKmh();
   _st.rpm = static_cast<int>(_telemetry.rpm());
   _st.gear = _telemetry.gear();
+  _st.lapNumber = _telemetry.lapNumber();
+  _st.racePosition = _telemetry.racePosition();
 }
 
 void App::tick() {
@@ -163,6 +173,10 @@ void App::tick() {
     float temp = _telemetry.tireTempAvgC();
     _tireTempGauge.setTemperature(temp);
     _st.tireTempAvg = temp;
+    _st.tireTempFL = _telemetry.tireTempFLC();
+    _st.tireTempFR = _telemetry.tireTempFRC();
+    _st.tireTempRL = _telemetry.tireTempRLC();
+    _st.tireTempRR = _telemetry.tireTempRRC();
   }
 
   _speedGauge.tick(nowMicros);

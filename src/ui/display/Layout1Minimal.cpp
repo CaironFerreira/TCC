@@ -21,7 +21,7 @@ void Layout1Minimal::formatGear(int gear, char* out, size_t outSize) const {
   if (gear < 0) {
     snprintf(out, outSize, "R");
   } else if (gear == 0) {
-    snprintf(out, outSize, "N");
+    snprintf(out, outSize, "--");
   } else {
     snprintf(out, outSize, "%d", gear);
   }
@@ -37,8 +37,8 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
   const int16_t w = _display->width();
   const int16_t h = _display->height();
   const int16_t centerX = w / 2;
-  const int16_t marginX = 22;
-  const int16_t rightX = w - marginX;
+  const int16_t speedX = 14;
+  const int16_t rightX = w - 32;
   const int16_t topY = 30;
   const int16_t bottomY = h - 61;
 
@@ -55,12 +55,22 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
   }
 
   // combustível
-  snprintf(buf, sizeof(buf), "FUEL %.1f", s.fuel);
+  float fuelPercent = s.fuel;
+  if (fuelPercent <= 1.0f) {
+    fuelPercent *= 100.0f;
+  }
+  if (fuelPercent < 0.0f) {
+    fuelPercent = 0.0f;
+  } else if (fuelPercent > 100.0f) {
+    fuelPercent = 100.0f;
+  }
+
+  snprintf(buf, sizeof(buf), "FUEL %.0f%%", fuelPercent);
   if (forceAll || strcmp(buf, _lastFuel) != 0) {
     strncpy(_lastFuel, buf, sizeof(_lastFuel) - 1);
     _lastFuel[sizeof(_lastFuel) - 1] = '\0';
 
-    clearValueBox(w / 2, topY, w / 2 - marginX, 24);
+    clearValueBox(w / 2 - 70, topY, w / 2 + 70, 24);
     _display->setTextSize(2);
     _display->drawRightString(_lastFuel, rightX, topY, 2);
   }
@@ -71,9 +81,9 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
     strncpy(_lastSpeed, buf, sizeof(_lastSpeed) - 1);
     _lastSpeed[sizeof(_lastSpeed) - 1] = '\0';
 
-    clearValueBox(marginX, bottomY, w / 2 - marginX, 24);
+    clearValueBox(0, bottomY - 2, w / 2, 34);
     _display->setTextSize(2);
-    _display->drawString(_lastSpeed, marginX, bottomY, 2);
+    _display->drawString(_lastSpeed, speedX, bottomY, 2);
   }
 
   // rpm
@@ -82,7 +92,7 @@ void Layout1Minimal::render(const UiStatus& s, bool forceAll, unsigned long now)
     strncpy(_lastRpm, buf, sizeof(_lastRpm) - 1);
     _lastRpm[sizeof(_lastRpm) - 1] = '\0';
 
-    clearValueBox(w / 2, bottomY, w / 2 - marginX, 24);
+    clearValueBox(w / 2, bottomY - 2, w / 2, 34);
     _display->setTextSize(2);
     _display->drawRightString(_lastRpm, rightX, bottomY, 2);
   }
