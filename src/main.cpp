@@ -70,7 +70,7 @@ static GaugeMotorTmc2208::Config makeFuelMotorConfig() {
   cfg.pinStep = PIN_STEP_FUEL;
   cfg.pinDirection = PIN_DIR_FUEL;
   cfg.pinEnable = PIN_EN_FUEL;
-  cfg.invertDirection = false;
+  cfg.invertDirection = FUEL_MOTOR_INVERT_DIRECTION;
   cfg.stepPulseUs = 2;
   return cfg;
 }
@@ -80,7 +80,7 @@ static GaugeMotorTmc2208::Config makeTempMotorConfig() {
   cfg.pinStep = PIN_STEP_TEMP;
   cfg.pinDirection = PIN_DIR_TEMP;
   cfg.pinEnable = PIN_EN_TEMP;
-  cfg.invertDirection = false;
+  cfg.invertDirection = TEMP_MOTOR_INVERT_DIRECTION;
   cfg.stepPulseUs = 2;
   return cfg;
 }
@@ -117,6 +117,8 @@ static FuelGauge::Config makeFuelGaugeConfig() {
   cfg.maxSteps = FUEL_RANGE_STEPS_0_TO_MAX;
   cfg.normalStepsPerSec = FUEL_NORMAL_STEPS_PER_SEC;
   cfg.fastStepsPerSec = FUEL_FAST_STEPS_PER_SEC;
+  cfg.invertIndicationDirection = FUEL_GAUGE_INVERT_INDICATION_DIRECTION;
+  cfg.invertCalibrationDirection = FUEL_CALIBRATION_INVERT_DIRECTION;
   cfg.calibrationRiseStepsPerSec = DEFAULT_CALIBRATION_RISE_STEPS_PER_SEC;
   cfg.calibrationFallStepsPerSec = DEFAULT_CALIBRATION_FALL_STEPS_PER_SEC;
   return cfg;
@@ -130,6 +132,8 @@ static TireTempGauge::Config makeTireTempGaugeConfig() {
   cfg.maxSteps = TEMP_RANGE_STEPS_0_TO_MAX;
   cfg.normalStepsPerSec = TEMP_NORMAL_STEPS_PER_SEC;
   cfg.fastStepsPerSec = TEMP_FAST_STEPS_PER_SEC;
+  cfg.invertIndicationDirection = TEMP_GAUGE_INVERT_INDICATION_DIRECTION;
+  cfg.calibrationBackoffSteps = TEMP_CALIBRATION_BACKOFF_STEPS;
   cfg.calibrationRiseStepsPerSec = DEFAULT_CALIBRATION_RISE_STEPS_PER_SEC;
   cfg.calibrationFallStepsPerSec = DEFAULT_CALIBRATION_FALL_STEPS_PER_SEC;
   return cfg;

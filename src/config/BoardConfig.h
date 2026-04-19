@@ -37,12 +37,19 @@ static constexpr float   SPEED_MAX_KMH              = 220.0f;
 static constexpr int32_t RPM_RANGE_STEPS_0_TO_MAX   = 180;
 static constexpr float   RPM_MAX_VALUE              = 8000.0f;
 
-static constexpr int32_t FUEL_RANGE_STEPS_0_TO_MAX  = 180;
-static constexpr int32_t TEMP_RANGE_STEPS_0_TO_MAX  = 180;
+static constexpr int32_t FUEL_RANGE_STEPS_0_TO_MAX  = 240;
+static constexpr int32_t TEMP_RANGE_STEPS_0_TO_MAX  = 120;
 
 // ===================== VELOCIDADES / CALIBRAÇÃO =====================
 static constexpr float DEFAULT_CALIBRATION_RISE_STEPS_PER_SEC = 300.0f;
 static constexpr float DEFAULT_CALIBRATION_FALL_STEPS_PER_SEC = 300.0f;
+
+static constexpr bool FUEL_MOTOR_INVERT_DIRECTION = false;
+static constexpr bool FUEL_CALIBRATION_INVERT_DIRECTION = true;
+static constexpr bool FUEL_GAUGE_INVERT_INDICATION_DIRECTION = true;
+static constexpr bool TEMP_MOTOR_INVERT_DIRECTION = true;
+static constexpr bool TEMP_GAUGE_INVERT_INDICATION_DIRECTION = true;
+static constexpr int32_t TEMP_CALIBRATION_BACKOFF_STEPS = 130;
 
 static constexpr float SPEED_NORMAL_STEPS_PER_SEC = 50.0f;
 static constexpr float SPEED_FAST_STEPS_PER_SEC   = 500.0f;
@@ -60,5 +67,5 @@ static constexpr float TEMP_FAST_STEPS_PER_SEC   = 220.0f;
 static constexpr float FUEL_MIN_LEVEL = 0.0f;
 static constexpr float FUEL_MAX_LEVEL = 1.0f;
 
-static constexpr float TIRE_TEMP_MIN_C = 20.0f;
-static constexpr float TIRE_TEMP_MAX_C = 120.0f;
+static constexpr float TIRE_TEMP_MIN_C = 0.0f;
+static constexpr float TIRE_TEMP_MAX_C = 169.0f;

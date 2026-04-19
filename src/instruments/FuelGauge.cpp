@@ -19,9 +19,13 @@ void FuelGauge::calibrate() {
   // zera referência atual
   _motor.setCurrentPosition(0);
 
+  const int32_t calibrationSteps = (int32_t)(_cfg.maxSteps * 1.3f);
+  const int32_t calibrationTarget =
+      _cfg.invertCalibrationDirection ? calibrationSteps : -calibrationSteps;
+
   // recua além do curso para garantir batente
   _motor.moveTo(
-    -(int32_t)(_cfg.maxSteps * 1.3f),
+    calibrationTarget,
     _cfg.calibrationRiseStepsPerSec,
     _cfg.calibrationFallStepsPerSec
   );
@@ -40,9 +44,7 @@ void FuelGauge::calibrate() {
 void FuelGauge::setFuelLevel(float level) {
   const float clamped = clampFuelLevel(level);
 
-  const float alpha = 0.10f;
-  _currentFuelLevel = _currentFuelLevel + alpha * (clamped - _currentFuelLevel);
-
+  _currentFuelLevel = clamped;
   _targetSteps = fuelToSteps(_currentFuelLevel);
   _motor.moveTo(_targetSteps, _cfg.normalStepsPerSec, _cfg.fastStepsPerSec);
 }
@@ -70,14 +72,15 @@ float FuelGauge::clampFuelLevel(float level) const {
 int32_t FuelGauge::fuelToSteps(float level) const {
   const float clamped = clampFuelLevel(level);
   const float rangeValue = _cfg.maxFuelLevel - _cfg.minFuelLevel;
-  const int32_t rangeSteps = _cfg.maxSteps - _cfg.minSteps;
+  const float rangeSteps = fabsf((float)(_cfg.maxSteps - _cfg.minSteps));
 
   if (rangeValue <= 0.0f) {
     return _cfg.minSteps;
   }
 
   const float ratio = (clamped - _cfg.minFuelLevel) / rangeValue;
-  const float stepsFloat = (float)_cfg.minSteps + ratio * (float)rangeSteps;
+  const float direction = _cfg.invertIndicationDirection ? -1.0f : 1.0f;
+  const float stepsFloat = (float)_cfg.minSteps + direction * ratio * rangeSteps;
 
   return (int32_t)lroundf(stepsFloat);
 }

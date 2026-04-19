@@ -14,6 +14,8 @@ public:
     float normalStepsPerSec = 180.0f;
     float fastStepsPerSec = 220.0f;
 
+    bool invertIndicationDirection = false;
+    int32_t calibrationBackoffSteps = 8;
     float calibrationRiseStepsPerSec = 300.0f;
     float calibrationFallStepsPerSec = 300.0f;
   };
@@ -37,4 +39,5 @@ private:
 
   float _currentTemp = 20.0f;
   int32_t _targetSteps = 0;
+  bool _hasTemperature = false;
 };

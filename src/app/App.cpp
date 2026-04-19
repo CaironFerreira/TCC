@@ -1,5 +1,4 @@
 #include "app/App.h"
-
 App::App(IWifiConfigPortal& wifiPortal,
          IButtonInput& layoutButton,
          TelemetryService& telemetry,
@@ -91,6 +90,10 @@ void App::startRuntime() {
 
   _telemetry.begin(_cfg.udpPort);
 
+  const uint32_t now = millis();
+  _lastFuelUpdateMs = now - FUEL_UPDATE_INTERVAL_MS;
+  _lastTempUpdateMs = now - TEMP_UPDATE_INTERVAL_MS;
+
   updateUiWifiFields();
   updateFastUiFields();
 
@@ -157,26 +160,30 @@ void App::tick() {
   _speedGauge.setSpeedKmh(_telemetry.speedKmh());
   _rpmGauge.setRpm(_telemetry.rpm());
 
-  // fuel (15s)
+  // fuel (1s)
   if (now - _lastFuelUpdateMs >= FUEL_UPDATE_INTERVAL_MS) {
-    _lastFuelUpdateMs = now;
+    if (_telemetry.hasValidTelemetry()) {
+      _lastFuelUpdateMs = now;
 
-    float fuel = _telemetry.fuelLevel();
-    _fuelGauge.setFuelLevel(fuel);
-    _st.fuel = fuel;
+      float fuel = _telemetry.fuelLevel();
+      _fuelGauge.setFuelLevel(fuel);
+      _st.fuel = fuel;
+    }
   }
 
   // temp (5s)
   if (now - _lastTempUpdateMs >= TEMP_UPDATE_INTERVAL_MS) {
-    _lastTempUpdateMs = now;
+    if (_telemetry.hasValidTelemetry()) {
+      _lastTempUpdateMs = now;
 
-    float temp = _telemetry.tireTempAvgC();
-    _tireTempGauge.setTemperature(temp);
-    _st.tireTempAvg = temp;
-    _st.tireTempFL = _telemetry.tireTempFLC();
-    _st.tireTempFR = _telemetry.tireTempFRC();
-    _st.tireTempRL = _telemetry.tireTempRLC();
-    _st.tireTempRR = _telemetry.tireTempRRC();
+      float temp = _telemetry.tireTempAvgC();
+      _tireTempGauge.setTemperature(temp);
+      _st.tireTempAvg = temp;
+      _st.tireTempFL = _telemetry.tireTempFLC();
+      _st.tireTempFR = _telemetry.tireTempFRC();
+      _st.tireTempRL = _telemetry.tireTempRLC();
+      _st.tireTempRR = _telemetry.tireTempRRC();
+    }
   }
 
   _speedGauge.tick(nowMicros);
