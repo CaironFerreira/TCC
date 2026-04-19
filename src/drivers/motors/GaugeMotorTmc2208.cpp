@@ -83,23 +83,23 @@ void GaugeMotorTmc2208::tick(uint32_t nowMicros) {
     return;
   }
 
+  const float stepIntervalMicros = 1000000.0f / _activeStepsPerSec;
   const uint32_t deltaMicros = nowMicros - _lastUpdateMicros;
-  _lastUpdateMicros = nowMicros;
 
-  const float deltaSteps = (_activeStepsPerSec * (float)deltaMicros) / 1000000.0f;
-  _stepAccumulator += deltaSteps;
-
-  while (_stepAccumulator >= 1.0f && _currentPositionSteps != _targetPositionSteps) {
-    if (_targetPositionSteps > _currentPositionSteps) {
-      setDirection(true);
-      pulseStep();
-      _currentPositionSteps++;
-    } else {
-      setDirection(false);
-      pulseStep();
-      _currentPositionSteps--;
-    }
-
-    _stepAccumulator -= 1.0f;
+  if ((float)deltaMicros < stepIntervalMicros) {
+    return;
   }
+
+  if (_targetPositionSteps > _currentPositionSteps) {
+    setDirection(true);
+    pulseStep();
+    _currentPositionSteps++;
+  } else {
+    setDirection(false);
+    pulseStep();
+    _currentPositionSteps--;
+  }
+
+  _lastUpdateMicros = nowMicros;
+  _stepAccumulator = 0.0f;
 }

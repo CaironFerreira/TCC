@@ -41,5 +41,6 @@ private:
   static constexpr size_t BUF_SIZE = 512;
   uint8_t _buf[BUF_SIZE];
 
+  static constexpr uint8_t PACKET_DRAIN_LIMIT = 64;
   static constexpr uint32_t SIGNAL_TIMEOUT_MS = 300;
 };

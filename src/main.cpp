@@ -117,8 +117,6 @@ static FuelGauge::Config makeFuelGaugeConfig() {
   cfg.maxSteps = FUEL_RANGE_STEPS_0_TO_MAX;
   cfg.normalStepsPerSec = FUEL_NORMAL_STEPS_PER_SEC;
   cfg.fastStepsPerSec = FUEL_FAST_STEPS_PER_SEC;
-  cfg.invertIndicationDirection = FUEL_GAUGE_INVERT_INDICATION_DIRECTION;
-  cfg.invertCalibrationDirection = FUEL_CALIBRATION_INVERT_DIRECTION;
   cfg.calibrationRiseStepsPerSec = DEFAULT_CALIBRATION_RISE_STEPS_PER_SEC;
   cfg.calibrationFallStepsPerSec = DEFAULT_CALIBRATION_FALL_STEPS_PER_SEC;
   return cfg;

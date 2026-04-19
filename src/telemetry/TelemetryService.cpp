@@ -18,8 +18,28 @@ bool TelemetryService::begin(uint16_t port) {
 }
 
 void TelemetryService::tick() {
-  int n = _receiver.receive(_buf, BUF_SIZE);
-  if (n <= 0) {
+  bool receivedPacket = false;
+
+  for (uint8_t i = 0; i < PACKET_DRAIN_LIMIT; ++i) {
+    int n = _receiver.receive(_buf, BUF_SIZE);
+    if (n <= 0) {
+      break;
+    }
+
+    receivedPacket = true;
+    _lastAnyPacketMs = millis();
+    _hasAnySignal = true;
+
+    TelemetryFrame frame;
+    frame.invalidate();
+
+    if (_decoder.decode(_buf, (size_t)n, frame)) {
+      _last = frame;
+      _lastPacketMs = millis();
+    }
+  }
+
+  if (!receivedPacket) {
     // timeout de sinal (qualquer pacote)
     if (_hasAnySignal && (millis() - _lastAnyPacketMs) > SIGNAL_TIMEOUT_MS) {
       _hasAnySignal = false;
@@ -30,17 +50,6 @@ void TelemetryService::tick() {
       _last.invalidate();
     }
     return;
-  }
-
-  _lastAnyPacketMs = millis();
-  _hasAnySignal = true;
-
-  TelemetryFrame frame;
-  frame.invalidate();
-
-  if (_decoder.decode(_buf, (size_t)n, frame)) {
-    _last = frame;
-    _lastPacketMs = millis();
   }
 }
 
@@ -101,11 +110,18 @@ float TelemetryService::fuelLevel() const {
     return 0.0f;
   }
 
-  if (!isfinite(_last.fuel) || _last.fuel < 0.0f) {
+  if (!isfinite(_last.fuel)) {
     return 0.0f;
   }
 
-  return _last.fuel;
+  float fuelRemaining = _last.fuel;
+  if (fuelRemaining < 0.0f) {
+    fuelRemaining = 0.0f;
+  } else if (fuelRemaining > 1.0f) {
+    fuelRemaining = 1.0f;
+  }
+
+  return fuelRemaining;
 }
 
 float TelemetryService::tireTempAvgC() const {

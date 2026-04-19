@@ -54,7 +54,6 @@ void App::resetStatus() {
 
   _lastUiMs = 0;
   _lastWifiMs = 0;
-  _lastFuelUpdateMs = 0;
   _lastTempUpdateMs = 0;
 }
 
@@ -91,7 +90,6 @@ void App::startRuntime() {
   _telemetry.begin(_cfg.udpPort);
 
   const uint32_t now = millis();
-  _lastFuelUpdateMs = now - FUEL_UPDATE_INTERVAL_MS;
   _lastTempUpdateMs = now - TEMP_UPDATE_INTERVAL_MS;
 
   updateUiWifiFields();
@@ -160,15 +158,10 @@ void App::tick() {
   _speedGauge.setSpeedKmh(_telemetry.speedKmh());
   _rpmGauge.setRpm(_telemetry.rpm());
 
-  // fuel (1s)
-  if (now - _lastFuelUpdateMs >= FUEL_UPDATE_INTERVAL_MS) {
-    if (_telemetry.hasValidTelemetry()) {
-      _lastFuelUpdateMs = now;
-
-      float fuel = _telemetry.fuelLevel();
-      _fuelGauge.setFuelLevel(fuel);
-      _st.fuel = fuel;
-    }
+  if (_telemetry.hasValidTelemetry()) {
+    const float fuel = _telemetry.fuelLevel();
+    _fuelGauge.setFuelLevel(fuel);
+    _st.fuel = fuel;
   }
 
   // temp (5s)

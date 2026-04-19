@@ -13,19 +13,16 @@ void FuelGauge::begin() {
 
   const float speed = _cfg.normalStepsPerSec;
   _motor.moveTo(_targetSteps, speed, speed);
+  _hasFuelLevel = false;
 }
 
 void FuelGauge::calibrate() {
   // zera referência atual
   _motor.setCurrentPosition(0);
 
-  const int32_t calibrationSteps = (int32_t)(_cfg.maxSteps * 1.3f);
-  const int32_t calibrationTarget =
-      _cfg.invertCalibrationDirection ? calibrationSteps : -calibrationSteps;
-
   // recua além do curso para garantir batente
   _motor.moveTo(
-    calibrationTarget,
+    -(int32_t)(_cfg.maxSteps * 1.3f),
     _cfg.calibrationRiseStepsPerSec,
     _cfg.calibrationFallStepsPerSec
   );
@@ -39,14 +36,31 @@ void FuelGauge::calibrate() {
 
   _currentFuelLevel = 0.0f;
   _targetSteps = 0;
+  _hasFuelLevel = false;
 }
 
 void FuelGauge::setFuelLevel(float level) {
   const float clamped = clampFuelLevel(level);
 
-  _currentFuelLevel = clamped;
+  const int32_t rawTargetSteps = fuelToSteps(clamped);
+  const int32_t distanceToTarget = rawTargetSteps - _motor.currentPosition();
+
+  const bool fastDrop = distanceToTarget < -20;
+  const bool fastRise = distanceToTarget > 20;
+
+  if (!_hasFuelLevel || fastDrop || fastRise) {
+    _currentFuelLevel = clamped;
+    _hasFuelLevel = true;
+  } else {
+    const float alpha = 0.25f;
+    _currentFuelLevel = _currentFuelLevel + alpha * (clamped - _currentFuelLevel);
+  }
+
   _targetSteps = fuelToSteps(_currentFuelLevel);
-  _motor.moveTo(_targetSteps, _cfg.normalStepsPerSec, _cfg.fastStepsPerSec);
+  const float speedToUse =
+      (fastDrop || fastRise) ? _cfg.fastStepsPerSec : _cfg.normalStepsPerSec;
+
+  _motor.moveTo(_targetSteps, speedToUse, speedToUse);
 }
 
 void FuelGauge::tick(uint32_t nowMicros) {
@@ -72,15 +86,14 @@ float FuelGauge::clampFuelLevel(float level) const {
 int32_t FuelGauge::fuelToSteps(float level) const {
   const float clamped = clampFuelLevel(level);
   const float rangeValue = _cfg.maxFuelLevel - _cfg.minFuelLevel;
-  const float rangeSteps = fabsf((float)(_cfg.maxSteps - _cfg.minSteps));
+  const int32_t rangeSteps = _cfg.maxSteps - _cfg.minSteps;
 
   if (rangeValue <= 0.0f) {
     return _cfg.minSteps;
   }
 
   const float ratio = (clamped - _cfg.minFuelLevel) / rangeValue;
-  const float direction = _cfg.invertIndicationDirection ? -1.0f : 1.0f;
-  const float stepsFloat = (float)_cfg.minSteps + direction * ratio * rangeSteps;
+  const float stepsFloat = (float)_cfg.minSteps + ratio * (float)rangeSteps;
 
   return (int32_t)lroundf(stepsFloat);
 }

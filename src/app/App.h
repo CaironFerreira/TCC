@@ -41,7 +41,6 @@ private:
 private:
   static const uint32_t UI_INTERVAL_MS = 100;
   static const uint32_t WIFI_INTERVAL_MS = 500;
-  static const uint32_t FUEL_UPDATE_INTERVAL_MS = 1000;
   static const uint32_t TEMP_UPDATE_INTERVAL_MS = 5000;
 
   IWifiConfigPortal& _wifiPortal;
@@ -58,7 +57,6 @@ private:
 
   uint32_t _lastUiMs = 0;
   uint32_t _lastWifiMs = 0;
-  uint32_t _lastFuelUpdateMs = 0;
   uint32_t _lastTempUpdateMs = 0;
 
   bool _runtimeStarted = false;

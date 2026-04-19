@@ -14,8 +14,6 @@ public:
     float normalStepsPerSec = 120.0f;
     float fastStepsPerSec = 120.0f;
 
-    bool invertIndicationDirection = false;
-    bool invertCalibrationDirection = false;
     float calibrationRiseStepsPerSec = 300.0f;
     float calibrationFallStepsPerSec = 300.0f;
   };
@@ -39,4 +37,5 @@ private:
 
   float _currentFuelLevel = 0.0f;
   int32_t _targetSteps = 0;
+  bool _hasFuelLevel = false;
 };
