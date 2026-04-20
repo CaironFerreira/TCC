@@ -8,7 +8,7 @@ void Layout3Tires::begin(TFT_eSPI& display) {
   _display->setTextDatum(TL_DATUM);
   _display->setTextColor(TFT_WHITE, TFT_BLACK);
   _display->setTextSize(2);
-  _display->drawCentreString("PNEUS", _display->width() / 2, 26, 2);
+  _display->drawCentreString("PNEUS", (_display->width() / 2) - 6, 34, 2);
 
   _lastFL[0] = '\0';
   _lastFR[0] = '\0';
@@ -64,7 +64,7 @@ void Layout3Tires::drawTireValue(int x,
   _display->drawRoundRect(x, y, w, h, 6, tempColor(tempC));
   _display->setTextColor(tempColor(tempC), TFT_BLACK);
   _display->setTextSize(2);
-  _display->drawCentreString(last, x + (w / 2), y + 13, 2);
+  _display->drawCentreString(last, x + (w / 2), y + 11, 2);
   _display->setTextColor(TFT_WHITE, TFT_BLACK);
 }
 
@@ -77,14 +77,14 @@ void Layout3Tires::render(const UiStatus& s, bool forceAll, unsigned long now) {
 
   const int16_t w = _display->width();
   const int16_t h = _display->height();
-  const int16_t marginX = 12;
-  const int16_t gap = 12;
-  const int16_t boxW = (w - (marginX * 2) - gap) / 2;
-  const int16_t boxH = 44;
-  const int16_t leftX = marginX;
-  const int16_t rightX = marginX + boxW + gap;
-  const int16_t topY = 66;
-  const int16_t bottomY = h - 78;
+  const int16_t boxW = 92;
+  const int16_t boxH = 40;
+  const int16_t gap = 18;
+  const int16_t totalW = (boxW * 2) + gap;
+  const int16_t leftX = ((w - totalW) / 2) - 6;
+  const int16_t rightX = leftX + boxW + gap;
+  const int16_t topY = 74;
+  const int16_t bottomY = h - 70;
 
   drawTireValue(leftX, topY, boxW, boxH, "FL", s.tireTempFL, _lastFL, sizeof(_lastFL), forceAll);
   drawTireValue(rightX, topY, boxW, boxH, "FR", s.tireTempFR, _lastFR, sizeof(_lastFR), forceAll);

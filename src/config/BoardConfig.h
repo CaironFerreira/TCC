@@ -38,7 +38,7 @@ static constexpr int32_t RPM_RANGE_STEPS_0_TO_MAX   = 180;
 static constexpr float   RPM_MAX_VALUE              = 8000.0f;
 
 static constexpr int32_t FUEL_RANGE_STEPS_0_TO_MAX  = 100;
-static constexpr int32_t TEMP_RANGE_STEPS_0_TO_MAX  = 120;
+static constexpr int32_t TEMP_RANGE_STEPS_0_TO_MAX  = FUEL_RANGE_STEPS_0_TO_MAX;
 
 // ===================== VELOCIDADES / CALIBRAÇÃO =====================
 static constexpr float DEFAULT_CALIBRATION_RISE_STEPS_PER_SEC = 300.0f;
