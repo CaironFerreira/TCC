@@ -1,109 +1,163 @@
 # TCC – Sistema Embarcado para Feedback Háptico em Sim Racing
 
-Este repositório abrange toda a coleção de arquivos, códigos-fonte e documentação referente ao **Trabalho de Conclusão de Curso (TCC)**, desenvolvido na modalidade **Relatório Técnico de Software**.
+Repositório do Trabalho de Conclusão de Curso desenvolvido na modalidade
+**Relatório Técnico de Software**. O projeto propõe um firmware para **ESP32**
+capaz de receber telemetria de simuladores de corrida via **UDP**, interpretar
+esses dados e acionar instrumentos físicos e interface visual em tempo real.
 
-O projeto propõe o desenvolvimento de um **dispositivo de sistema embarcado plug and play**, baseado em microcontrolador ESP32, destinado a aumentar a experiência imersiva de jogadores de simulação de corrida por meio de **feedback físico baseado em dados de telemetria**.
+## Panorama Atual
 
----
+O estado atual do repositório já cobre o núcleo técnico do projeto:
 
-## Visão Geral do Projeto
+- recepção de telemetria por UDP em rede local;
+- decodificação do protocolo usado no simulador;
+- atualização de velocímetro, conta-giros, combustível e temperatura;
+- exibição de marcha, status e dados de telemetria em display TFT;
+- fluxo assíncrono de configuração Wi‑Fi com portal embarcado;
+- arquitetura modular organizada por portas e adaptadores;
+- suíte automatizada host-side e validações embarcadas iniciais.
 
-O sistema recebe dados de telemetria disponibilizados por jogos de simulação de corrida (como velocidade, rotação do motor, marcha e eventos específicos), por meio de comunicação em rede utilizando o protocolo **UDP**, interpreta essas informações e aciona **atuadores físicos modulares**, como motores e displays, proporcionando uma experiência mais realista ao jogador.
+Em termos de validação:
 
-O público-alvo do projeto é composto por **jogadores de simulação sem conhecimento técnico prévio** em programação, eletrônica ou sistemas embarcados, sendo a facilidade de uso um dos principais requisitos da solução.
+- `18` suítes de teste estão implementadas;
+- `73` casos de teste estão definidos;
+- `70` casos já possuem execução concluída com evidência coletada;
+- o `smoke test` no ESP32 já foi validado em hardware real;
+- a integração UDP real no ESP32 foi implementada, compilada e levada a upload,
+  mas o fechamento experimental ainda depende da bancada elétrica.
 
----
+## Escopo Atual do Firmware
 
-## Objetivo Geral
+O firmware presente neste repositório está centrado no **MVP funcional** do
+painel háptico e visual. O que já está materializado no código é:
 
-Desenvolver um sistema embarcado capaz de receber e interpretar dados de telemetria de jogos de simulação de corrida e gerar feedback físico em tempo real, de forma automática e transparente ao usuário final.
+- conexão e configuração de rede via portal Wi‑Fi;
+- recepção contínua de pacotes UDP;
+- serviço de telemetria com tratamento de timeout, descarte e recuperação;
+- cluster de instrumentos com despacho por tipo de sinal;
+- instrumentos físicos para velocidade, RPM, combustível e temperatura;
+- serviço de display com layouts intercambiáveis e navegação por botão.
 
----
+Pontos que permanecem como evolução futura ou validação complementar:
 
-## Escopo do Projeto (MVP)
+- compatibilidade formal por plataforma (`Xbox`, `PS4`, `PS5`, `PC`);
+- efeitos de vibração (`RF14` e `RF15`);
+- fechamento da validação eletromecânica completa do protótipo.
 
-Este repositório contempla a implementação de um **Produto Mínimo Viável (MVP)**, cujo objetivo é validar a viabilidade técnica da proposta apresentada no TCC.
+## Arquitetura
 
-### Funcionalidades contempladas no MVP
+O firmware segue uma organização em camadas para reduzir acoplamento e facilitar
+manutenção e testes:
 
-O MVP do projeto compromete-se a implementar **os requisitos funcionais até o RF10**, conforme definido na documentação de requisitos, incluindo:
+- `composition/`: ponto de composição e inicialização;
+- `application/`: casos de uso, orquestração e serviços de aplicação;
+- `domain/`: modelos e estado neutros;
+- `ports/`: contratos entre camadas;
+- `adapters/`: integrações concretas com Wi‑Fi, UDP, display, GPIO e tempo.
 
-- Conexão automática à rede local
-- Comunicação com o jogo via protocolo UDP
-- Recepção e interpretação de dados de telemetria
-- Controle de indicadores físicos de:
-  - velocidade
-  - rotação do motor
-  - marcha
-- Indicação de status operacional do sistema
-- Compatibilidade com a plataforma **Xbox Series**
-- Inicialização automática do sistema
-- Detecção automática de módulos conectados
+Direção principal das dependências:
 
-Essas funcionalidades são consideradas **suficientes para demonstrar o funcionamento básico do sistema**, validar a arquitetura proposta e comprovar a viabilidade da solução.
+```text
+composition -> application -> domain / ports
+adapters -> ports
+```
 
----
+Documentos e diagramas relacionados:
 
-## Funcionalidades Futuras
+- [Arquitetura do Firmware](docs/arquitetura/arquitetura-firmware.md)
+- [Projeto Técnico (Design)](docs/arquitetura/projeto-tecnico-design.md)
+- [Protocolo](docs/arquitetura/protocolo.md)
+- [Diagramas](docs/arquitetura/diagramas/README.md)
 
-Os requisitos funcionais e não funcionais descritos na documentação que **excedem o RF10** são considerados **extensões futuras**, podendo ser implementados caso haja disponibilidade adicional de tempo e recursos.
+## Estrutura do Repositório
 
-Entre as possíveis evoluções do sistema, destacam-se:
+```text
+.
+├── src/        Firmware principal
+├── test/       Suítes automatizadas e fixtures
+├── scripts/    Automação auxiliar, incluindo cobertura
+├── docs/       Documentação do TCC organizada por tema
+├── include/    Configurações auxiliares do projeto
+└── platformio.ini
+```
 
-- Compatibilidade com outras plataformas (PlayStation 4, PlayStation 5 e PC)
-- Implementação de efeitos adicionais de vibração
-- Suporte a outros simuladores de corrida
-- Expansão do conjunto de atuadores modulares
-- Aprimoramento da personalização dos efeitos físicos
+## Build e Execução
 
-Essas funcionalidades não fazem parte do escopo mínimo garantido do projeto.
+Pré-requisitos principais:
 
----
+- `PlatformIO CLI`
+- toolchain C/C++
+- placa compatível com `esp32dev` para ensaios embarcados
 
-## Arquitetura do Sistema
+Comandos mais usados:
 
-O sistema foi projetado seguindo uma **arquitetura modular**, composta por:
+```bash
+pio run -e esp32dev
+pio test -e test_native
+pio test -e test_esp32_smoke
+pio test -e test_esp32_udp_integration
+./scripts/run_native_coverage.sh
+```
 
-- Módulo de comunicação de rede (UDP)
-- Módulo de interpretação de dados de telemetria
-- Módulo de mapeamento telemetria → efeito físico
-- Módulo de controle de atuadores
-- Interface simples de indicação de status
+Observação:
+- a execução da integração UDP real em hardware ainda depende de uma bancada
+  que sustente o Wi‑Fi ativo sem `brownout` e, idealmente, preserve
+  observabilidade serial simultânea.
 
-Essa organização visa facilitar a manutenção, a expansão futura e a reutilização do sistema em outros contextos de simulação.
+## Testes e Validação
 
----
+A estratégia de testes combina execução rápida no host com validação incremental
+no microcontrolador:
+
+- testes unitários;
+- integração host-side;
+- teste de componente da aplicação;
+- smoke test embarcado;
+- integração UDP real no ESP32.
+
+Resumo do estado atual:
+
+| Tipo | Estado |
+| --- | --- |
+| Unitário | implementado, executado e aprovado |
+| Integração host-side | implementado, executado e aprovado |
+| Componente | implementado, executado e aprovado |
+| Smoke embarcado | implementado, executado e aprovado |
+| Integração UDP real | implementado; build/upload validados; execução final limitada pela bancada |
+
+Referências:
+
+- [Quadro Geral dos Testes](docs/validacao/testes/quadro-geral-dos-testes.md)
+- [Rastreabilidade de Testes](docs/validacao/testes/rastreabilidade-de-testes.md)
+- [Execução e Evidências](docs/validacao/testes/execucao-e-evidencias-dos-testes.md)
+- [Resultados da Execução Automatizada](docs/validacao/testes/resultados-da-execucao-automatizada.md)
 
 ## Documentação
 
-A documentação do projeto encontra-se organizada no diretório `docs/`, incluindo:
+A documentação foi reorganizada por tema e possui índice em
+[docs/README.md](docs/README.md):
 
-- Requisitos Funcionais
-- Requisitos Não Funcionais
-- Histórias de Usuário
-- Casos de Uso
-- Arquitetura do Firmware
-
----
+- `docs/analise/`
+- `docs/requisitos/`
+- `docs/arquitetura/`
+- `docs/planejamento/`
+- `docs/validacao/`
 
 ## Tecnologias Utilizadas
 
-- ESP32
-- C / C++ (firmware)
-- Comunicação via UDP
-- Motores de passo e servomotores
-- Display TFT ST7789 com TFT_eSPI
-- PlantUML para modelagem
-- Markdown para documentação
+- `ESP32`
+- `C/C++`
+- `Arduino Framework`
+- `PlatformIO`
+- `UDP`
+- `TFT_eSPI`
+- `Unity`
+- `PlantUML`
+- `Markdown`
 
----
+## Observação
 
-## Observação Final
-
-Este repositório representa um **projeto acadêmico**, cujo foco principal é a validação técnica e conceitual da solução proposta. A implementação foi deliberadamente delimitada a um MVP, conforme descrito na documentação do trabalho, não representando um produto final comercial.
-
----
-
-## Autor
-
-Trabalho de Conclusão de Curso desenvolvido como requisito parcial para obtenção do grau em **Análise e Desenvolvimento de Sistemas**.
+Este repositório representa um projeto acadêmico com foco em **validação
+técnica**, **organização arquitetural** e **evidência experimental**. O código
+e a documentação refletem um MVP robusto para banca e evolução futura, não um
+produto final comercial.

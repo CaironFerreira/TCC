@@ -1,0 +1,124 @@
+@startuml
+title Diagrama de Classes do Nucleo
+
+top to bottom direction
+skinparam shadowing false
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam nodesep 40
+skinparam ranksep 40
+hide empty members
+
+package "Domain" #F7F7F7 {
+  class UiStatus
+  class TelemetryFrame
+}
+
+package "Application" #EAF2FF {
+  class App {
+    +begin(cfg: AppConfig)
+    +tick()
+  }
+
+  class TelemetryService {
+    +begin(port: uint16_t)
+    +tick()
+  }
+
+  class InstrumentCluster {
+    +begin()
+    +setSpeedKmh(speedKmh: float)
+    +setRpm(rpm: float)
+    +setFuelLevel(fuelLevel: float)
+    +setTireTemperature(temperatureC: float)
+    +tick(nowMicros: uint32_t)
+  }
+}
+
+package "Instruments" #EEF7EE {
+  interface IInstrument {
+    +begin()
+    +tick(nowMicros: uint32_t)
+    +supports(type: InstrumentSignalType): bool
+    +apply(signal: InstrumentSignal)
+  }
+
+  class SpeedGauge
+  class RpmGauge
+  class FuelGauge
+  class TireTempGauge
+}
+
+package "Ports" #FFF6DD {
+  interface IWifiConfigPortal
+  interface IButtonInput
+  interface IClock
+  interface ITelemetrySource
+  interface IPacketReceiver
+  interface ITelemetryDecoder
+  interface IStatusDisplay
+  interface IInstrumentCluster
+  interface IGaugeMotor
+}
+
+package "Adapters" #FCEFEF {
+  class WiFiConfigPortal
+  class GpioButtonInput
+  class UdpReceiver
+  class Forza7Decoder
+  class DisplayService
+  interface IDisplayLayout
+  class GaugeMotorTmc2208
+}
+
+SpeedGauge -[hidden]right- RpmGauge
+RpmGauge -[hidden]right- FuelGauge
+FuelGauge -[hidden]right- TireTempGauge
+IWifiConfigPortal -[hidden]down- IButtonInput
+IButtonInput -[hidden]down- IClock
+IClock -[hidden]down- ITelemetrySource
+ITelemetrySource -[hidden]down- IPacketReceiver
+IPacketReceiver -[hidden]down- ITelemetryDecoder
+ITelemetryDecoder -[hidden]down- IStatusDisplay
+IStatusDisplay -[hidden]down- IInstrumentCluster
+IInstrumentCluster -[hidden]down- IGaugeMotor
+
+App --> IWifiConfigPortal
+App --> IButtonInput
+App --> IClock
+App --> ITelemetrySource
+App --> IStatusDisplay
+App --> IInstrumentCluster
+App *-- UiStatus
+
+TelemetryService ..|> ITelemetrySource
+TelemetryService --> IPacketReceiver
+TelemetryService --> ITelemetryDecoder
+TelemetryService --> IClock
+TelemetryService *-- TelemetryFrame
+
+InstrumentCluster ..|> IInstrumentCluster
+InstrumentCluster o-- "1..*" IInstrument
+
+SpeedGauge ..|> IInstrument
+RpmGauge ..|> IInstrument
+FuelGauge ..|> IInstrument
+TireTempGauge ..|> IInstrument
+
+DisplayService ..|> IStatusDisplay
+DisplayService o-- "1..*" IDisplayLayout
+DisplayService --> UiStatus
+
+WiFiConfigPortal ..|> IWifiConfigPortal
+GpioButtonInput ..|> IButtonInput
+UdpReceiver ..|> IPacketReceiver
+Forza7Decoder ..|> ITelemetryDecoder
+GaugeMotorTmc2208 ..|> IGaugeMotor
+
+note bottom of SpeedGauge
+As quatro classes concretas de gauge
+recebem IGaugeMotor e IClock por injecao.
+end note
+
+@enduml

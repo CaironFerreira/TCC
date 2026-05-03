@@ -1,11 +1,31 @@
+Estrutura de testes automatizados do projeto.
 
-This directory is intended for PlatformIO Test Runner and project tests.
+Pastas principais:
+- `test/support/`: doubles, builders de pacotes e utilitarios compartilhados.
+- `test/fixtures/`: fixtures binarias de regressao do protocolo.
+- `test/test_forza7_decoder/`: testes unitarios do decoder do protocolo Forza 7.
+- `test/test_telemetry_pipeline/`: testes de integracao entre receiver fake, decoder real e servico de telemetria.
+- `test/test_protocol_regression/`: regressao do protocolo com fixtures binarias persistidas.
+- `test/test_telemetry_robustness/`: robustez do pipeline sob burst, timeout e recuperacao.
+- `test/test_telemetry_service/`: testes unitarios do servico de telemetria.
+- `test/test_ui_status/`: testes unitarios das rotinas de copia e truncamento da UI.
+- `test/test_display_service/`: testes unitarios do servico de display e da troca de layouts.
+- `test/test_wifi_config_portal/`: testes unitarios do portal Wi-Fi e do contrato assincrono de conexao.
+- `test/test_speed_gauge/`: testes unitarios do velocimetro.
+- `test/test_rpm_gauge/`: testes unitarios do conta-giros.
+- `test/test_fuel_gauge/`: testes unitarios do indicador de combustivel.
+- `test/test_tire_temp_gauge/`: testes unitarios do indicador de temperatura dos pneus.
+- `test/test_udp_receiver/`: testes unitarios do adaptador UDP.
+- `test/test_gpio_button_input/`: testes unitarios do adaptador de botao com debounce.
+- `test/test_instrument_cluster/`: testes unitarios do despachante de instrumentos.
+- `test/test_app/`: testes de componente da aplicacao principal.
+- `test/test_smoke_esp32_runtime/`: smoke test executado no ESP32.
+- `test/test_udp_pipeline_esp32/`: integracao UDP real no ESP32 com `WiFiUDP`, decoder e servico de telemetria.
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+Comandos previstos:
+- `pio test -e test_native`
+- `pio test -e test_esp32_smoke`
+- `pio test -e test_esp32_udp_integration`
+- `./scripts/run_native_coverage.sh`
 
-More information about PlatformIO Unit Testing:
-- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+A estrategia detalhada, os casos de teste e o roteiro de execucao estao em `docs/`.

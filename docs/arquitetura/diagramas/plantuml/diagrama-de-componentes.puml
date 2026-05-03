@@ -1,0 +1,118 @@
+@startuml
+title Diagrama de Componentes do Firmware
+
+top to bottom direction
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam nodesep 45
+skinparam ranksep 45
+
+package "Composition Root" #F7F7F7 {
+  component "main.cpp" as Main
+}
+
+package "Application Layer" #EAF2FF {
+  component "App" as App
+  component "TelemetryService" as Telemetry
+  component "InstrumentCluster" as Cluster
+  component "Gauges\nSpeed / RPM / Fuel / Temp" as Gauges
+}
+
+package "Ports Layer" #FFF6DD {
+  component "Network ports" as NetworkPorts
+  component "UI ports" as UiPorts
+  component "Actuator ports" as ActuatorPorts
+  component "Clock port" as ClockPort
+}
+
+note right of NetworkPorts
+IWifiConfigPortal
+IPacketReceiver
+ITelemetryDecoder
+ITelemetrySource
+end note
+
+note right of UiPorts
+IButtonInput
+IStatusDisplay
+end note
+
+note right of ActuatorPorts
+IInstrumentCluster
+IInstrument
+IGaugeMotor
+end note
+
+note right of ClockPort
+IClock
+end note
+
+package "Adapters Layer" #EEF7EE {
+  component "WiFiConfigPortal" as Wifi
+  component "GpioButtonInput" as Button
+  component "ArduinoClock" as Clock
+  component "UdpReceiver" as Udp
+  component "Forza7Decoder" as Decoder
+  component "DisplayService" as Display
+  component "Display Layouts" as Layouts
+  component "GaugeMotorTmc2208" as Motor
+}
+
+package "Frameworks / Hardware" #FCEFEF {
+  component "WiFi / WebServer" as WifiInfra
+  component "WiFiUDP" as UdpInfra
+  component "TFT_eSPI" as TftInfra
+  component "GPIO / stepper driver" as IoInfra
+}
+
+App -[hidden]right- Telemetry
+Telemetry -[hidden]right- Cluster
+Cluster -[hidden]right- Gauges
+NetworkPorts -[hidden]right- UiPorts
+UiPorts -[hidden]right- ActuatorPorts
+ActuatorPorts -[hidden]right- ClockPort
+Wifi -[hidden]right- Button
+Button -[hidden]right- Clock
+Clock -[hidden]right- Udp
+Udp -[hidden]right- Decoder
+Decoder -[hidden]right- Display
+Display -[hidden]right- Layouts
+Layouts -[hidden]right- Motor
+
+Main --> App
+Main --> Telemetry
+Main --> Cluster
+Main --> Gauges
+Main --> Display
+
+App --> NetworkPorts
+App --> UiPorts
+App --> ActuatorPorts
+App --> ClockPort
+
+Telemetry --> NetworkPorts
+Telemetry --> ClockPort
+
+Cluster --> ActuatorPorts
+Gauges --> ActuatorPorts
+Gauges --> ClockPort
+
+Display --> UiPorts
+Display --> Layouts
+
+Wifi --> NetworkPorts
+Button --> UiPorts
+Clock --> ClockPort
+Udp --> NetworkPorts
+Decoder --> NetworkPorts
+Motor --> ActuatorPorts
+
+Wifi --> WifiInfra
+Udp --> UdpInfra
+Display --> TftInfra
+Button --> IoInfra
+Motor --> IoInfra
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml
+title Diagrama de Sequencia - Ciclo principal do firmware
+
+skinparam shadowing false
+
+participant "setup()/loop()" as Runtime
+participant App
+participant WiFiConfigPortal as Wifi
+participant TelemetryService as Telemetry
+participant UdpReceiver as UDP
+participant Forza7Decoder as Decoder
+participant InstrumentCluster as Cluster
+participant "IInstrument[*]" as Instrument
+participant DisplayService as Display
+
+== Inicializacao ==
+Runtime -> App : begin(AppConfig)
+App -> Wifi : begin()
+
+alt Wi-Fi conectado
+  App -> Cluster : begin()
+  App -> Telemetry : begin(udpPort)
+  App -> Display : begin(layoutId)
+  App -> Display : setStatus(UiStatus)
+  App -> Display : tick()
+else Portal ativo
+  App -> Display : begin(layoutId)
+  App -> Display : showMessage("Wi-Fi SimHub", ...)
+else Aguardando conexao
+  App -> Display : begin(layoutId)
+  App -> Display : showMessage("Conectando Wi-Fi", ...)
+end
+
+== Operacao ==
+loop a cada iteracao do loop()
+  Runtime -> App : tick()
+  App -> Wifi : tick()
+
+  alt portal ativo
+    App -> Display : showMessage("Wi-Fi SimHub", ...)
+  else runtime iniciado
+    App -> Telemetry : tick()
+    Telemetry -> UDP : receive(buffer)
+
+    alt pacote recebido
+      Telemetry -> Decoder : decode(data, len, frame)
+      Decoder --> Telemetry : TelemetryFrame valido
+    else erro, descarte ou timeout
+      Telemetry -> Telemetry : atualiza estado e contadores
+    end
+
+    App -> Cluster : setSpeedKmh(speed)
+    App -> Cluster : setRpm(rpm)
+
+    opt telemetria valida
+      App -> Cluster : setFuelLevel(fuel)
+      opt a cada 5 s
+        App -> Cluster : setTireTemperature(temp)
+      end
+    end
+
+    App -> Cluster : tick(nowMicros)
+    Cluster -> Instrument : apply(signal)
+    Cluster -> Instrument : tick(nowMicros)
+
+    opt botao de layout pressionado
+      App -> Display : nextLayout()
+    end
+
+    opt a cada 100 ms
+      App -> Display : setStatus(UiStatus)
+      App -> Display : tick()
+    end
+  end
+end
+
+@enduml

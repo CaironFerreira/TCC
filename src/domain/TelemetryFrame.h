@@ -24,6 +24,7 @@ struct TelemetryFrame {
 
   void invalidate() {
     valid = false;
+    timestampMs = 0;
 
     speedKmh = 0.0f;
     rpm = 0;
