@@ -1,0 +1,807 @@
+\documentclass[12pt,oneside,a4paper]{article}
+
+% ---------------------------------------------------------
+% PACOTES BÁSICOS
+% ---------------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{times}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xurl}
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage{seqsplit}
+\usepackage{enumitem}
+\usepackage{amsmath, amssymb}
+\usepackage{indentfirst}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage[section]{placeins}
+\usepackage[num]{abntex2cite}
+
+\graphicspath{{../arquitetura/diagramas/imagens/}{imagens/}}
+
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    backgroundcolor=\color{black!5},
+    stringstyle=\color{red!70!black},
+    commentstyle=\color{gray!90!black},
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=false,
+    columns=fullflexible,
+    keepspaces=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    tabsize=2,
+    extendedchars=true,
+    literate={á}{{\'a}}1 {ã}{{\~a}}1 {é}{{\'e}}1 {ç}{{\c{c}}}1 {ó}{{\'o}}1 {í}{{\'i}}1
+}
+
+\renewcommand{\lstlistingname}{Código}
+\renewcommand{\lstlistlistingname}{Lista de Códigos}
+
+% ---------------------------------------------------------
+% FORMATAÇÃO
+% ---------------------------------------------------------
+\geometry{a4paper, left=3cm, right=2cm, top=2.5cm, bottom=2.5cm}
+\setstretch{1.5}
+\captionsetup{labelfont=bf, labelsep=endash, justification=centering}
+
+\justifying
+\sloppy
+\emergencystretch=3em
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+% Permite quebra segura de termos técnicos longos em fonte monoespaçada
+\let\OldTexttt\texttt
+\renewcommand{\texttt}[1]{\begingroup\ttfamily\seqsplit{#1}\endgroup}
+
+% Listas dentro das margens
+\setlist[itemize]{
+  leftmargin=1.15cm,
+  itemsep=0.25em,
+  topsep=0.4em,
+  parsep=0pt
+}
+
+\setlist[enumerate]{
+  leftmargin=1.15cm,
+  itemsep=0.35em,
+  topsep=0.4em,
+  parsep=0pt
+}
+
+% Espaçamento controlado ao redor de figuras e tabelas
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{6pt}
+\setlength{\belowcaptionskip}{4pt}
+
+% ---------------------------------------------------------
+% COMANDOS PARA FIGURAS EM RETRATO, DENTRO DAS MARGENS
+% ---------------------------------------------------------
+\newcommand{\FiguraRetrato}[3]{
+\begin{figure}[!htbp]
+\centering
+\includegraphics[
+  max width=0.88\textwidth,
+  max height=0.62\textheight,
+  keepaspectratio
+]{#1}
+\caption{#2}
+\label{#3}
+\end{figure}
+\FloatBarrier
+}
+
+\newcommand{\FiguraRetratoGrande}[3]{
+\begin{figure}[!htbp]
+\centering
+\includegraphics[
+  max width=0.90\textwidth,
+  max height=0.68\textheight,
+  keepaspectratio
+]{#1}
+\caption{#2}
+\label{#3}
+\end{figure}
+\FloatBarrier
+}
+
+\newcommand{\FiguraManual}[3]{
+\begin{figure}[!htbp]
+\centering
+\includegraphics[
+  max width=0.88\textwidth,
+  max height=0.78\textheight,
+  keepaspectratio
+]{#1}
+\caption{#2}
+\label{#3}
+\end{figure}
+\FloatBarrier
+}
+
+% ---------------------------------------------------------
+% DADOS DO TRABALHO
+% ---------------------------------------------------------
+\newcommand{\Instituicao}{INSTITUTO FEDERAL DE EDUCAÇÃO, CIÊNCIA E TECNOLOGIA DO PIAUÍ}
+\newcommand{\Campus}{Campus Piripiri}
+\newcommand{\Curso}{Tecnólogo em Análise e Desenvolvimento de Sistemas}
+\newcommand{\Titulo}{Sistema Embarcado para \textit{Feedback} Háptico em \textit{Sim Racing}}
+\newcommand{\Autor}{Cairon Ferreira Prado}
+\newcommand{\Orientador}{[Preencher nome do(a) orientador(a)]}
+\newcommand{\CoOrientador}{}
+\newcommand{\Cidade}{Piripiri -- PI}
+\newcommand{\Ano}{2026}
+
+\begin{document}
+
+% ================= CAPA =====================
+\begin{titlepage}
+\begin{center}
+% \includegraphics[width=10cm]{imagens/Logo-IFPI-Vertical.png} \\[0.3cm]
+\textbf{\Instituicao} \\
+\textbf{\Campus} \\
+\textbf{\Curso} \\[3cm]
+
+\textbf{\Autor} \\[2.5cm]
+\textbf{\Titulo} \\[6cm]
+
+\Cidade\\
+\Ano
+\end{center}
+\end{titlepage}
+
+% ================= FOLHA DE ROSTO =====================
+\begin{titlepage}
+\begin{center}
+\textbf{\Autor} \\[3cm]
+
+\textbf{\Titulo} \\[2cm]
+
+\begin{flushright}
+\begin{minipage}{0.6\textwidth}
+Relatório Técnico de Software apresentado ao curso de \Curso{}, como requisito parcial para a conclusão do Trabalho de Conclusão de Curso (TCC). \\ \\
+Orientador(a): \Orientador
+\ifx\CoOrientador\empty\else \\ Coorientador(a): \CoOrientador \fi
+\end{minipage}
+\end{flushright}
+
+\vfill
+\Cidade \\
+\Ano
+\end{center}
+\end{titlepage}
+
+% ================= RESUMO =====================
+\newpage
+\section*{Resumo}
+Este relatório técnico apresenta o desenvolvimento e a validação de um firmware
+embarcado para \texttt{ESP32} voltado a converter telemetria de simuladores de
+corrida em \textit{feedback} físico e visual. O sistema recebe pacotes \texttt{UDP},
+decodifica o formato \textit{Data Out} atualmente implementado para
+\textit{Forza Motorsport 7}, atualiza instrumentos físicos de velocidade,
+rotação do motor, combustível e temperatura média dos pneus, e exibe marcha,
+posição, volta, conectividade e estados operacionais em um display
+\texttt{TFT}. A solução foi estruturada em camadas, com influência de
+\textit{Ports and Adapters}, para reduzir acoplamento, melhorar a testabilidade e
+permitir evolução incremental. O projeto também incorpora portal assíncrono de
+configuração \texttt{Wi-Fi}, serviço de telemetria com \textit{timeout} e recuperação de
+sinal, e organização do painel por catálogos de instrumentos e \textit{layouts}. A
+validação combinou testes unitários, integração \textit{host-side}, teste de componente,
+\textit{smoke test} no microcontrolador e preparação de uma suíte de integração
+\texttt{UDP} real em \textit{hardware}. Em verificação local realizada em 4 de maio de
+2026, a suíte \texttt{test\_native} executou \texttt{68/68} casos com
+\texttt{100\%} de aprovação; a documentação do projeto ainda registra um total
+de \texttt{18} suítes e \texttt{73} casos definidos, incluindo \textit{smoke
+test} embarcado aprovado e integração \texttt{UDP} real implementada, embora
+dependente de uma bancada elétrica mais estável para fechamento experimental
+completo. O resultado final é um produto mínimo viável (MVP) tecnicamente consistente, modular e apto à
+demonstração acadêmica, com expansão futura prevista para compatibilidade
+formal com outras plataformas e efeitos adicionais de vibração.
+
+Palavras-chave: sistemas embarcados, ESP32, telemetria, \textit{sim racing}, firmware,
+validação automatizada.
+
+\newpage
+\section*{Abstract}
+This technical report presents the development and validation of an
+\texttt{ESP32}-based embedded firmware designed to transform racing simulator
+telemetry into physical and visual feedback. The system receives \texttt{UDP}
+packets, decodes the currently supported \textit{Data Out} format from
+\textit{Forza Motorsport 7}, updates physical gauges for speed, engine RPM,
+fuel and average tire temperature, and renders gear, lap, position,
+connectivity and operational status on a \texttt{TFT} display. The solution was
+organized in layered form, influenced by \textit{Ports and Adapters}, in order
+to reduce coupling, improve testability and support incremental evolution. The
+project also includes an asynchronous \texttt{Wi-Fi} configuration portal, a
+telemetry service with timeout and signal recovery, and a composition model
+based on instrument and display catalogs. Validation combined unit tests,
+host-side integration tests, component tests, an embedded smoke test and a real
+\texttt{UDP} integration suite prepared for the microcontroller. In a local
+verification performed on May 4, 2026, the \texttt{test\_native} suite executed
+\texttt{68/68} test cases with full approval; project documentation also
+records \texttt{18} suites and \texttt{73} defined cases in total, including a
+successful embedded smoke test and a real \texttt{UDP} integration suite that
+is still limited by electrical bench conditions for full experimental closure.
+The final outcome is a technically consistent and modular MVP suitable for
+academic demonstration, with future expansion planned for broader platform
+compatibility and additional vibration effects.
+
+Keywords: embedded systems, ESP32, telemetry, sim racing, firmware, automated
+validation.
+
+% ================= SUMÁRIO =====================
+\newpage
+\tableofcontents
+\newpage
+
+% ================= DESENVOLVIMENTO =====================
+\section{Introdução}
+\label{sec:introducao}
+
+O contexto de \textit{sim racing} favorece projetos que ampliam a imersão do
+jogador por meio de \textit{feedback} visual, sonoro e físico. Embora a telemetria dos
+simuladores modernos seja rica em informações sobre velocidade, rotação do
+motor, marcha, combustível, temperatura e posição em pista, essas informações
+normalmente permanecem confinadas a interfaces digitais do próprio jogo ou a
+aplicações complementares executadas em outras telas. No escopo deste TCC, o
+problema técnico abordado consiste em transformar parte dessa telemetria em
+comportamento observável de um painel físico, com baixo acoplamento ao \textit{hardware}
+e com uma estratégia de validação compatível com as restrições de um protótipo
+embarcado.
+
+O repositório do projeto estabelece a fonte primária de verdade para este
+relatório. Assim, o escopo final considerado não é o conjunto máximo de ideias
+levantadas no pré-projeto, mas sim o que foi efetivamente implementado,
+testado, documentado e versionado. Nessa versão final, o firmware materializa
+um produto mínimo viável (MVP) centrado em cinco capacidades principais: configuração de rede por
+portal \texttt{Wi-Fi}, recepção de telemetria via \texttt{UDP}, decodificação
+do protocolo \textit{Forza Motorsport 7 (Data Out)}, acionamento de
+instrumentos físicos e apresentação de estados e indicadores em \textit{display}
+\texttt{TFT}.
+
+Do ponto de vista arquitetural, a solução foi estruturada de forma a separar o
+ponto de composição do sistema, a lógica de aplicação, os modelos de domínio,
+as portas de abstração e os adaptadores concretos de infraestrutura. Essa
+decisão permitiu exercitar grande parte do comportamento em ambiente \textit{host-side},
+reduzindo a dependência do microcontrolador para cada iteração de
+desenvolvimento. A organização incremental do projeto e a definição de
+objetivos mensuráveis seguem uma abordagem metodológica compatível com a
+proposta de pesquisa aplicada discutida por Wazlawick
+\cite{wazlawick2017metodologia}.
+
+\subsection{Objetivos}
+
+\subsubsection{Geral}
+Desenvolver e validar um sistema embarcado modular, fundamentado no uso do
+microcontrolador \texttt{ESP32}, capaz de receber, processar e mapear dados de
+telemetria provenientes de simuladores de corrida para um painel físico com
+instrumentos analógicos e interface visual embarcada.
+
+\subsubsection{Específicos}
+\begin{itemize}
+  \item Implementar a configuração e a reconexão de rede local por meio de
+  portal \texttt{Wi-Fi} embarcado e reaproveitamento de credenciais salvas.
+  \item Receber continuamente pacotes de telemetria via \texttt{UDP} na rede
+  local utilizada pelo simulador.
+  \item Decodificar o formato \textit{Forza Motorsport 7 (Data Out)} e extrair
+  velocidade, rotação, marcha, volta, posição, combustível e temperaturas dos
+  pneus.
+  \item Traduzir os sinais de telemetria para atuação física em instrumentos de
+  velocidade, \textit{RPM}, combustível e temperatura.
+  \item Exibir, em display \texttt{TFT}, estados de conectividade, marcha,
+  status operacional e \textit{layouts} de acompanhamento da telemetria.
+  \item Estruturar o firmware de forma modular, favorecendo manutenção,
+  testabilidade e expansão futura para novos instrumentos ou novos \textit{decoders}.
+  \item Validar a solução por meio de testes automatizados \textit{host-side} e de
+  execução controlada no \texttt{ESP32}.
+\end{itemize}
+
+\section{Tecnologias Envolvidas}
+
+O projeto não envolve \textit{backend} web, banco de dados ou infraestrutura de
+\textit{deploy} em nuvem. Trata-se de um firmware embarcado cujo núcleo técnico
+se apoia em bibliotecas e ferramentas voltadas a redes locais, controle de
+periféricos e validação automatizada.
+
+\begin{table}[H]
+\centering
+\caption{Tecnologias efetivamente utilizadas no projeto}
+\label{tab:tecnologias_usadas}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{3.2cm}
+  >{\justifying\arraybackslash}X
+}
+\toprule
+\textbf{Tecnologia} & \textbf{Papel no projeto} \\
+\midrule
+\texttt{ESP32 Dev Module} & Plataforma de execução do firmware e integração com \texttt{Wi-Fi}, \texttt{GPIO} e periféricos do protótipo. \\
+\texttt{C/C++} & Linguagem empregada na implementação do firmware e das suítes de teste. \\
+\texttt{Arduino Framework} & Base de acesso ao ciclo \texttt{setup/loop}, temporização, pinos digitais, \texttt{Wi-Fi} e demais recursos do microcontrolador. \\
+\texttt{PlatformIO} & Orquestração de \textit{build}, \textit{upload}, ambientes de teste e reprodução da validação. \\
+\texttt{UDP} & Transporte de telemetria em rede local entre o simulador e o dispositivo embarcado. \\
+\texttt{WiFi}, \texttt{WiFiUDP}, \texttt{WebServer} e \texttt{Preferences} & Conectividade local, recepção de pacotes, portal de configuração e persistência de credenciais. \\
+\texttt{TFT\_eSPI} & Renderização dos \textit{layouts} no display \texttt{ST7789} de \texttt{240x320} pixels. \\
+\texttt{TMC2208} & Driver empregado no acionamento dos motores associados aos ponteiros do painel. \\
+\texttt{Unity} & \textit{Framework} de testes automatizados no host e no \texttt{ESP32}. \\
+\texttt{PlantUML} e \texttt{Markdown} & Documentação arquitetural, modelagem técnica e rastreabilidade textual do TCC. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Modelagem do Projeto}
+
+\subsection{Levantamento de Requisitos}
+
+O catálogo de requisitos do projeto foi mantido no repositório durante o
+desenvolvimento e serviu como referência para o recorte do MVP final. Como o
+escopo inicial era mais amplo do que a implementação entregue, a leitura dos
+requisitos no presente relatório deve considerar três estados: implementado,
+parcialmente contemplado e previsto como evolução futura.
+
+\textbf{Requisitos Funcionais}
+\begin{itemize}
+  \item \texttt{RF01} -- conexão automática à rede local: implementado por meio
+  do \texttt{WiFiConfigPortal}, com reaproveitamento de credenciais salvas e
+  abertura de ponto de acesso quando a conexão falha.
+  \item \texttt{RF02} -- comunicação com o jogo via \texttt{UDP}: implementado
+  pelo adaptador \texttt{UdpReceiver} e pelo ambiente de telemetria do
+  firmware.
+  \item \texttt{RF03} -- interpretação dos dados recebidos: implementado pelo
+  \texttt{Forza7Decoder} e pelo \texttt{TelemetryService}.
+  \item \texttt{RF04} -- controle do indicador de velocidade: implementado por
+  \texttt{SpeedGauge} e \texttt{GaugeMotorTmc2208}.
+  \item \texttt{RF05} -- controle do indicador de rotação do motor:
+  implementado por \texttt{RpmGauge} e \texttt{GaugeMotorTmc2208}.
+  \item \texttt{RF06} -- controle do indicador de marcha: implementado na
+  interface \texttt{TFT} por meio do \texttt{DisplayService} e dos layouts
+  embarcados.
+  \item \texttt{RF07} -- detecção automática de módulos conectados: apenas
+  parcialmente contemplado. O software já é modular e aceita registro por
+  catálogo, mas não há detecção física de \textit{hot-plug} no protótipo atual.
+  \item \texttt{RF08} -- inicialização automática do sistema: implementado na
+  classe \texttt{App}, que inicializa portal, telemetria, UI e instrumentos ao
+  receber energia.
+  \item \texttt{RF09} -- indicação de status operacional: implementado por meio
+  do estado \texttt{UiStatus} e das telas de conexão, portal e telemetria.
+  \item \texttt{RF10} a \texttt{RF13} -- compatibilidade formal com
+  \texttt{Xbox Series}, \texttt{PlayStation 4}, \texttt{PlayStation 5} e
+  \texttt{PC}: não há validação multiplataforma consolidada no repositório
+  final; o \textit{decoder} efetivamente implementado é específico para
+  \textit{Forza Motorsport 7}.
+  \item \texttt{RF14} e \texttt{RF15} -- efeitos adicionais de vibração:
+  permanecem fora do MVP entregue no firmware atual.
+\end{itemize}
+
+\textbf{Requisitos Não Funcionais}
+\begin{itemize}
+  \item \texttt{RNF01} -- facilidade de uso: parcialmente atendido pelo fluxo
+  de portal \texttt{Wi-Fi}, que reduz configurações manuais e dispensa
+  recompilação para troca de rede.
+  \item \texttt{RNF02} -- baixa latência: orientou a escolha de \texttt{UDP} e
+  o desenho do firmware, mas não possui medição formal fim a fim concluída nesta
+  versão do trabalho.
+  \item \texttt{RNF04} -- modularidade e expansibilidade: atendido pela
+  organização em camadas, pelas portas e pelo registro por catálogos de \textit{layouts}
+  e instrumentos.
+  \item \texttt{RNF05}, \texttt{RNF11}, \texttt{RNF12} e \texttt{RNF13} --
+  compatibilidade por plataforma: permanecem como objetivo de validação futura.
+  \item \texttt{RNF06} -- robustez: fortemente contemplado nos testes por
+  cenários de pacote inválido, descarte, \textit{timeout}, \textit{burst} e recuperação.
+  \item \texttt{RNF08} -- escalabilidade funcional: parcialmente contemplado,
+  pois a arquitetura permite novos \textit{decoders}, ainda que apenas um protocolo
+  concreto esteja implementado.
+  \item \texttt{RNF09} -- manutenibilidade: atendido pela organização do código,
+  pela injeção de dependências e pela automação de testes.
+  \item \texttt{RNF10} -- confiabilidade física: parcialmente contemplado. O
+  firmware implementa limites lógicos e calibração dos instrumentos, mas a
+  validação eletromecânica completa depende de fechamento experimental da
+  bancada.
+\end{itemize}
+
+\subsection{Casos de Uso}
+
+O catálogo analítico de casos de uso do TCC foi documentado no arquivo
+\texttt{docs/analise/casos-de-uso.md}. Entretanto, considerando o repositório
+final como referência principal, os casos de uso centrais efetivamente
+materializados pelo firmware podem ser sintetizados conforme a
+Tabela~\ref{tab:casos_uso}.
+
+\begin{table}[H]
+\centering
+\caption{Casos de uso centrais do MVP final}
+\label{tab:casos_uso}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{1.7cm}
+  >{\raggedright\arraybackslash}p{3.5cm}
+  >{\justifying\arraybackslash}X
+}
+\toprule
+\textbf{ID} & \textbf{Caso de uso} & \textbf{Materialização no repositório} \\
+\midrule
+\texttt{UC11} & Conectar automaticamente à rede local & O firmware tenta reutilizar credenciais salvas, inicia tentativa assíncrona de conexão e abre o portal \texttt{SimHub} quando necessário. \\
+\texttt{UC12} & Receber telemetria via \texttt{UDP} & O adaptador \texttt{UdpReceiver} abre a porta \texttt{5300} e fornece pacotes ao serviço de telemetria. \\
+\texttt{UC13} & Interpretar dados de telemetria & O \texttt{Forza7Decoder} converte o pacote bruto em um \texttt{TelemetryFrame} consumido pela aplicação. \\
+\texttt{UC01} & Exibir velocidade no painel físico & O \texttt{SpeedGauge} converte velocidade em passos e movimenta o ponteiro físico. \\
+\texttt{UC02} & Exibir rotação do motor no painel físico & O \texttt{RpmGauge} controla o instrumento de \textit{RPM} com suavização e resposta acelerada em variações bruscas. \\
+\texttt{UC03} & Exibir marcha no display \texttt{TFT} & Os layouts do \texttt{DisplayService} apresentam a marcha de forma destacada no centro da interface. \\
+\texttt{UC04} & Consultar status operacional do sistema & O estado \texttt{UiStatus} concentra conectividade, qualidade da telemetria, volta, posição e contadores de falha. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Casos de uso relacionados à compatibilidade multiplataforma e a efeitos
+adicionais de vibração continuam pertencendo ao escopo analítico do TCC, mas
+não foram integralmente convertidos em funcionalidade entregue no firmware
+versionado.
+
+\subsection{Diagrama de Classes}
+
+A Figura~\ref{fig:diagrama_classes} apresenta a visão estrutural principal do
+firmware. O diagrama deixa evidente a separação entre a classe orquestradora
+\texttt{App}, os serviços de aplicação, os contratos de porta e os adaptadores
+concretos de infraestrutura.
+
+\FiguraRetratoGrande
+{diagrama-de-classes.png}
+{Diagrama de classes do firmware.}
+{fig:diagrama_classes}
+
+Do ponto de vista de responsabilidade, a classe \texttt{App} coordena o ciclo
+de vida do sistema, o \texttt{TelemetryService} transforma entrada de rede em
+estado de telemetria confiável, o \texttt{InstrumentCluster} despacha sinais
+para instrumentos especializados e o \texttt{DisplayService} consolida a
+renderização dos \textit{layouts} do painel. A modelagem também evidencia o uso de
+interfaces como \texttt{IPacketReceiver}, \texttt{ITelemetryDecoder},
+\texttt{IGaugeMotor}, \texttt{IStatusDisplay} e \texttt{IWifiConfigPortal},
+decisão central para a testabilidade do projeto.
+
+\subsection{Arquitetura do Sistema}
+
+A arquitetura adotada combina organização em camadas com princípios de
+\textit{Dependency Inversion} e \textit{Ports and Adapters}. O ponto de
+composição do sistema localiza-se em \texttt{src/composition/main.cpp}, onde
+adaptadores concretos, instrumentos, \textit{layouts} e serviços são instanciados e
+injetados na aplicação.
+
+\FiguraRetratoGrande
+{arquitetura-geral.png}
+{Arquitetura geral do sistema embarcado.}
+{fig:arquitetura_geral}
+
+Em termos de organização, a arquitetura pode ser resumida da seguinte forma:
+\begin{itemize}
+  \item \texttt{composition/}: monta a aplicação e concentra a criação das
+  dependências concretas.
+  \item \texttt{application/}: coordena fluxos de telemetria, instrumentos e
+  interface sem depender diretamente de APIs de hardware.
+  \item \texttt{domain/}: armazena modelos neutros, como
+  \texttt{TelemetryFrame} e \texttt{UiStatus}.
+  \item \texttt{ports/}: define contratos para tempo, rede, telemetria,
+  display, botões e motores.
+  \item \texttt{adapters/}: implementa \texttt{Wi-Fi}, \texttt{UDP},
+  \texttt{display}, \texttt{GPIO}, relógio e acionamento dos instrumentos.
+\end{itemize}
+
+O fluxo principal de execução ocorre em quatro etapas: conexão de rede,
+recepção de pacotes, decodificação/normalização da telemetria e despacho para
+instrumentos e interface. No estado atual, a telemetria válida aciona
+velocímetro, conta-giros, marcador de combustível e indicador de temperatura,
+enquanto a interface exibe informações rápidas em quatro \textit{layouts} distintos.
+
+\subsection{Diagramas de Sequência}
+
+\FiguraRetrato
+{diagrama-sequencia-inicializacao.png}
+{Diagrama de sequência da inicialização do firmware.}
+{fig:sequencia_inicializacao}
+
+\FiguraRetrato
+{diagrama-sequencia-operacao-principal.png}
+{Diagrama de sequência da operação principal do firmware.}
+{fig:sequencia_operacao_principal}
+
+\FiguraRetrato
+{diagrama-sequencia-telemetria.png}
+{Diagrama de sequência de telemetria e instrumentos.}
+{fig:sequencia_telemetria}
+
+\subsection{Diagrama Entidade-Relacionamento}
+
+Não se aplica ao escopo deste projeto. O firmware não utiliza banco de dados
+relacional nem persistência tabular de domínio. O único armazenamento local
+persistente implementado refere-se a credenciais de rede, mantidas pela API
+\texttt{Preferences} do \texttt{ESP32}. Os dados de telemetria são mantidos em
+memória volátil e atualizados em tempo real pelo \texttt{TelemetryService}.
+
+\subsection{Interfaces}
+
+A interface do sistema é inteiramente embarcada e se divide em dois contextos:
+mensagens de estado operacional e layouts de telemetria do display
+\texttt{TFT}. Como o repositório não versiona capturas de tela do painel físico,
+esta seção descreve os \textit{layouts} concretamente implementados no código.
+
+\begin{table}[H]
+\centering
+\caption{Interfaces visuais implementadas no display}
+\label{tab:interfaces}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{2.5cm}
+  >{\justifying\arraybackslash}X
+}
+\toprule
+\textbf{Interface} & \textbf{Conteúdo principal} \\
+\midrule
+\texttt{Layout0Basic} & Exibe posição de corrida, volta atual e marcha em destaque, privilegiando leitura rápida de estado competitivo. \\
+\texttt{Layout1Minimal} & Exibe marcha central, velocidade, \textit{RPM} e percentual de combustível, servindo como painel sintético geral. \\
+\texttt{Layout2Performance} & Exibe velocidade ampliada, marcha, combustível com codificação por cor e barra de \textit{RPM}. \\
+\texttt{Layout3Tires} & Exibe temperaturas individuais \texttt{FL}, \texttt{FR}, \texttt{RL} e \texttt{RR} com codificação cromática por faixa térmica. \\
+\texttt{Telas de estado} & Apresentam mensagens de conexão, orientação para acesso ao portal \texttt{SimHub} e aguardam configuração ou estabelecimento de rede. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A navegação entre \textit{layouts} é realizada por um botão físico ligado ao pino
+\texttt{16}. O display é configurado em \texttt{240x320} pixels com driver
+\texttt{ST7789}, conforme definido no arquivo \texttt{include/User\_Setup.h}.
+
+\section{Software}
+\label{sec:software}
+
+\subsection{Implantação}
+
+A implantação do projeto exige um ambiente de desenvolvimento compatível com
+\texttt{PlatformIO}, uma placa \texttt{ESP32 Dev Module} e os componentes
+físicos do protótipo, em especial o display \texttt{TFT}, os drivers
+\texttt{TMC2208} e os instrumentos analógicos.
+
+O processo de execução do firmware pode ser resumido nas etapas a seguir:
+\begin{enumerate}
+  \item Instalar ou disponibilizar o \texttt{PlatformIO CLI} e garantir que o
+  projeto esteja aberto na raiz do repositório.
+  \item Revisar o arquivo \texttt{include/User\_Setup.h} para confirmar a
+  configuração do display \texttt{ST7789} e revisar
+  \texttt{src/config/BoardConfig.h} para os pinos e limites dos instrumentos.
+  \item Compilar o firmware principal com o comando
+  \texttt{pio run -e esp32dev}.
+  \item Transferir o binário para a placa por meio do fluxo padrão do
+  \texttt{PlatformIO}.
+  \item Ao energizar o sistema, observar se o dispositivo conecta-se a uma rede
+  salva; caso isso não ocorra, conectar-se ao ponto de acesso \texttt{SimHub} e
+  abrir \url{http://simhub} para informar SSID e senha da rede local.
+  \item Configurar o simulador para enviar telemetria no formato atualmente
+  suportado (\textit{Forza Motorsport 7 -- Data Out}) para a mesma rede local,
+  utilizando a porta \texttt{5300}.
+  \item Com a rede estabelecida, permitir que o firmware receba os pacotes e
+  atualize tanto o display quanto os instrumentos físicos do painel.
+\end{enumerate}
+
+Para validação automatizada, os comandos principais do projeto são:
+\begin{itemize}
+  \item \texttt{pio test -e test\_native}
+  \item \texttt{pio test -e test\_esp32\_smoke}
+  \item \texttt{pio test -e test\_esp32\_udp\_integration}
+  \item \texttt{./scripts/run\_native\_coverage.sh}
+\end{itemize}
+
+\subsection{Exemplo de Código}
+
+O Código~\ref{cod:composition_root} apresenta um recorte do ponto de composição
+do firmware, no qual as dependências concretas são instanciadas e conectadas à
+classe principal da aplicação. Esse trecho é representativo porque evidencia,
+em poucas linhas, a organização modular adotada no projeto.
+
+\begin{lstlisting}[caption={Trecho do ponto de composição do firmware}, label={cod:composition_root}]
+static ArduinoClock systemClock;
+static UdpReceiver udp;
+static Forza7Decoder decoder;
+static TelemetryService telemetry(udp, decoder, systemClock);
+
+static DisplayService ui(displayLayouts,
+                         sizeof(displayLayouts) / sizeof(displayLayouts[0]));
+
+static InstrumentCluster instruments(
+  clusterInstruments,
+  sizeof(clusterInstruments) / sizeof(clusterInstruments[0])
+);
+
+static App app(
+  wifiPortal,
+  layoutButton,
+  systemClock,
+  telemetry,
+  ui,
+  instruments
+);
+
+void setup() {
+  app.begin(makeAppConfig());
+}
+
+void loop() {
+  app.tick();
+}
+\end{lstlisting}
+
+\subsection{Testes}
+
+A estratégia de testes do projeto foi organizada em cinco camadas:
+testes unitários, integração \textit{host-side}, teste de componente, \textit{smoke
+test} embarcado e integração \texttt{UDP} real no \texttt{ESP32}. Essa divisão
+foi adotada para permitir regressão rápida no host sem abrir mão de evidências
+mínimas em hardware real.
+
+\begin{table}[H]
+\centering
+\caption{Quadro consolidado de testes do projeto}
+\label{tab:testes}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{3.2cm}
+  >{\centering\arraybackslash}p{1.3cm}
+  >{\centering\arraybackslash}p{1.3cm}
+  >{\justifying\arraybackslash}X
+}
+\toprule
+\textbf{Tipo de teste} & \textbf{Suítes} & \textbf{Casos} & \textbf{Situação} \\
+\midrule
+Unitário & 12 & 51 & Implementado, executado e aprovado em \texttt{test\_native}. \\
+Integração \textit{host-side} & 3 & 9 & Implementado, executado e aprovado em \texttt{test\_native}. \\
+Componente & 1 & 8 & Implementado, executado e aprovado em \texttt{test\_native}. \\
+Smoke embarcado & 1 & 2 & Implementado, executado e aprovado em \texttt{test\_esp32\_smoke}. \\
+Integração embarcada real & 1 & 3 & Implementado; \textit{build} e \textit{upload} validados; execução final limitada pela bancada elétrica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Os documentos de validação do repositório registram \texttt{18} suítes e
+\texttt{73} casos definidos, dos quais \texttt{70} já tiveram execução concluída
+com evidência coletada. A diferença entre o total documentado e a execução
+\textit{host-side} decorre do fato de que \texttt{test\_native} cobre apenas as suítes
+\textit{host-safe}, enquanto os demais casos pertencem aos ambientes embarcados.
+
+Em verificação local realizada em 4 de maio de 2026, a suíte
+\texttt{test\_native} foi executada novamente no estado atual do repositório e
+produziu \texttt{68/68} casos aprovados em aproximadamente \texttt{13}
+segundos. Esse resultado reafirma a integridade da automação \textit{host-side} na
+versão final utilizada para a escrita deste relatório.
+
+Quanto à cobertura real de código, a última medição consolidada registrada no
+repositório aponta os percentuais apresentados na
+Tabela~\ref{tab:cobertura}. Esses dados foram produzidos pelo script
+\texttt{./scripts/run\_native\_coverage.sh}.
+
+\begin{table}[H]
+\centering
+\caption{Resumo da cobertura \textit{host-side} registrada no projeto}
+\label{tab:cobertura}
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Grupo} & \textbf{Linhas} & \textbf{Funções} & \textbf{Branches} \\
+\midrule
+Unitário & 66,1\% & 79,5\% & 41,5\% \\
+Integração & 13,4\% & 21,1\% & 6,6\% \\
+Componente & 12,7\% & 15,3\% & 4,9\% \\
+Consolidado \textit{host-side} & 76,9\% & 84,8\% & 46,2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Do ponto de vista qualitativo, os testes cobrem os pontos tecnicamente mais
+sensíveis do MVP: recepção \texttt{UDP}, \textit{offsets} do protocolo, conversões de
+unidade, tratamento de \textit{timeout}, contagem de erros, filtros de entrada,
+suavização de instrumentos, mudança de \textit{layout}, transições entre portal
+\texttt{Wi-Fi} e modo operacional e renderização básica da interface. A
+evidência embarcada já confirma o \textit{smoke test} no \texttt{ESP32}; por
+outro lado, a integração \texttt{UDP} real permanece parcialmente limitada por
+restrições físicas da bancada, especialmente condições de \textit{brownout}
+quando o rádio \texttt{Wi-Fi} é ativado sob alimentação exclusivamente via
+\texttt{USB}.
+
+\section{Considerações Finais}
+
+O repositório final do projeto demonstra que o TCC avançou de uma proposta de
+painel háptico modular para um firmware embarcado efetivamente executável e
+validável. A contribuição central da implementação não está apenas na recepção
+de telemetria, mas na transformação dessa entrada em comportamento coerente de
+um painel físico e visual, com separação arquitetural suficiente para manter o
+código legível, testável e evolutivo.
+
+Como resultado prático, o firmware entregue estabelece uma base funcional para
+um painel de \textit{sim racing} com \texttt{ESP32}, portal de configuração
+\texttt{Wi-Fi}, \textit{pipeline} de telemetria \texttt{UDP}, instrumentos físicos
+calibrados e \textit{display} com \textit{layouts} especializados. A existência de testes
+automatizados em várias camadas aumenta a confiança técnica no MVP e reduz o
+risco de regressão em futuras iterações.
+
+As limitações do trabalho também ficaram claras e devem ser registradas com
+objetividade. A implementação atual concentra-se no protocolo
+\textit{Forza Motorsport 7 (Data Out)}, não fecha ainda a compatibilidade
+formal com múltiplas plataformas de jogo, não implementa os efeitos extras de
+vibração previstos no escopo inicial e depende de melhor instrumentação de
+bancada para concluir a validação \texttt{UDP} real em cenário eletricamente
+estável. Assim, a evolução futura mais natural do projeto é consolidar a
+validação experimental em uso real, medir latência fim a fim, ampliar o suporte
+a novos simuladores e incorporar os efeitos hápticos adicionais previstos na
+análise original.
+
+% ------------------------------
+\newpage
+\renewcommand{\refname}{}
+\section*{Referências}
+\begin{thebibliography}{1}
+
+\bibitem{wazlawick2017metodologia}
+WAZLAWICK, Raul.
+\textbf{Metodologia de pesquisa para ciência da computação}.
+2. ed.
+Rio de Janeiro: Elsevier Brasil, 2017.
+
+\end{thebibliography}
+
+% ------------------------------
+\clearpage
+\appendix
+\section*{Apêndice A -- Manual de Configuração Rápida}
+\addcontentsline{toc}{section}{Apêndice A -- Manual de Configuração Rápida}
+
+\FiguraManual
+{manual-de-uso.png}
+{Manual de configuração rápida do painel de telemetria.}
+{fig:manual_configuracao_rapida}
+
+% ------------------------------
+\clearpage
+\section*{Anexos}
+\addcontentsline{toc}{section}{Anexos}
+
+\subsection*{Declaração de Entrega do Código-Fonte}
+Declaro que o código-fonte correspondente a este trabalho foi entregue à
+coordenação do curso e encontra-se organizado no repositório técnico utilizado
+na elaboração deste relatório.
+
+Assinatura: \rule{10cm}{0.4pt}
+
+Data: \rule{1cm}{0.4pt}/\rule{1cm}{0.4pt}/\rule{2cm}{0.4pt}
+
+\subsection*{Declaração de Submissão ao NIT}
+Declaro que as providências institucionais relativas à submissão do software ao
+NIT -- IFPI foram adotadas conforme as exigências aplicáveis ao presente
+trabalho.
+
+Assinatura: \rule{10cm}{0.4pt}
+
+Data: \rule{1cm}{0.4pt}/\rule{1cm}{0.4pt}/\rule{2cm}{0.4pt}
+
+\end{document}

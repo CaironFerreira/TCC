@@ -1,0 +1,60 @@
+@startuml
+title Diagrama de Atividades - Fluxo Geral do Firmware
+
+skinparam shadowing false
+skinparam ArrowThickness 1.5
+skinparam defaultFontSize 22
+skinparam titleFontSize 26
+
+skinparam activity {
+  FontSize 20
+  DiamondFontSize 20
+  BackgroundColor white
+  BorderColor #444444
+  DiamondBackgroundColor #F7F7F7
+  DiamondBorderColor #444444
+  StartColor #444444
+  EndColor #444444
+  BarColor #444444
+}
+
+start
+
+:Inicializar sistema;
+:Configurar componentes principais;
+:Verificar credenciais de rede;
+
+if (Wi-Fi conectado?) then (sim)
+else (nao)
+  :Ativar portal de configuracao Wi-Fi;
+  while (Conexao estabelecida?) is (nao)
+    :Receber credenciais e tentar conexao;
+    :Exibir orientacoes de configuracao;
+  endwhile (sim)
+endif
+
+:Iniciar modo operacional;
+
+while (Sistema em execucao?) is (sim)
+  :Receber pacotes de telemetria;
+  :Validar e decodificar dados recebidos;
+
+  if (Telemetria valida?) then (sim)
+    :Atualizar variaveis de estado;
+    :Acionar instrumentos fisicos;
+    :Atualizar interface visual;
+  else (nao)
+    :Tratar ausencia, descarte ou erro de sinal;
+    :Preservar supervisao do sistema;
+  endif
+
+  if (Ha interacao do usuario?) then (sim)
+    :Alternar layout da interface;
+  endif
+
+  :Monitorar estado da conexao e do sistema;
+endwhile (nao)
+
+stop
+
+@enduml

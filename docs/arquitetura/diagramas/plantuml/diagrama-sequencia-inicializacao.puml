@@ -1,0 +1,57 @@
+@startuml
+title Diagrama de Sequência - Inicialização do Firmware
+
+hide footbox
+autonumber
+
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+
+skinparam defaultFontSize 22
+skinparam titleFontSize 26
+skinparam ParticipantFontSize 22
+skinparam SequenceMessageFontSize 20
+skinparam ArrowFontSize 20
+skinparam DividerFontSize 22
+skinparam ParticipantPadding 28
+skinparam BoxPadding 14
+skinparam maxMessageSize 45
+skinparam ArrowThickness 1.5
+
+participant "setup()/loop()" as Runtime
+participant App
+participant WiFiConfigPortal as Wifi
+participant GpioButtonInput as Button
+participant ArduinoClock as Clock
+participant TelemetryService as Telemetry
+participant InstrumentCluster as Cluster
+participant DisplayService as Display
+
+== Inicialização ==
+
+Runtime -> App : begin(AppConfig)
+App -> App : resetStatus()
+App -> Button : begin()
+App -> Wifi : begin()
+
+alt portal ativo
+  App -> Display : begin(layoutId)
+  App -> Display : showMessage("Wi-Fi SimHub", ...)
+
+else Wi-Fi ja conectado
+  App -> App : startRuntime()
+  App -> Display : begin(layoutId)
+  App -> Cluster : begin()
+  App -> Telemetry : begin(udpPort)
+  App -> Clock : nowMs()
+  Clock --> App : now
+  App -> Display : setStatus(UiStatus)
+  App -> Display : tick()
+
+else aguardando conexao
+  App -> Display : begin(layoutId)
+  App -> Display : showMessage("Conectando Wi-Fi", ...)
+end
+
+@enduml

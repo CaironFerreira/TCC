@@ -1,0 +1,88 @@
+@startuml
+title Diagrama de Sequência - Operação Principal do Firmware
+
+hide footbox
+autonumber
+
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+
+skinparam defaultFontSize 22
+skinparam titleFontSize 26
+skinparam ParticipantFontSize 22
+skinparam SequenceMessageFontSize 20
+skinparam ArrowFontSize 20
+skinparam DividerFontSize 22
+skinparam ParticipantPadding 28
+skinparam BoxPadding 14
+skinparam maxMessageSize 45
+skinparam ArrowThickness 1.5
+
+participant "setup()/loop()" as Runtime
+participant App
+participant WiFiConfigPortal as Wifi
+participant GpioButtonInput as Button
+participant ArduinoClock as Clock
+participant TelemetryService as Telemetry
+participant InstrumentCluster as Cluster
+participant DisplayService as Display
+
+== Operação ==
+
+loop a cada iteracao de loop()
+  Runtime -> App : tick()
+  App -> Wifi : tick()
+
+  alt portal ativo
+    opt tela do portal ainda nao mostrada
+      App -> Display : begin(layoutId)
+      App -> Display : showMessage("Wi-Fi SimHub", ...)
+    end
+
+  else runtime ainda nao iniciado e Wi-Fi conectado
+    App -> App : startRuntime()
+    App -> Display : begin(layoutId)
+    App -> Cluster : begin()
+    App -> Telemetry : begin(udpPort)
+    App -> Clock : nowMs()
+    Clock --> App : now
+    App -> Display : setStatus(UiStatus)
+    App -> Display : tick()
+
+  else runtime ainda nao iniciado
+    opt tela de conexao ainda nao mostrada
+      App -> Display : begin(layoutId)
+      App -> Display : showMessage("Conectando Wi-Fi", ...)
+    end
+
+  else runtime iniciado
+    App -> Clock : nowMs()
+    Clock --> App : now
+
+    App -> Clock : nowMicros()
+    Clock --> App : nowMicros
+
+    App -> Button : tick(now)
+    App -> Button : wasPressed()
+
+    alt botao pressionado
+      App -> App : updateFastUiFields()
+      App -> Display : setStatus(UiStatus)
+      App -> Display : nextLayout()
+      App -> Display : tick()
+    end
+
+    opt intervalo de 500 ms
+      App -> App : updateUiWifiFields()
+    end
+
+    opt intervalo de 100 ms
+      App -> App : updateFastUiFields()
+      App -> Display : setStatus(UiStatus)
+      App -> Display : tick()
+    end
+  end
+end
+
+@enduml

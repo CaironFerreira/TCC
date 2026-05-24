@@ -6,25 +6,38 @@ skinparam shadowing false
 skinparam linetype ortho
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
-skinparam nodesep 45
-skinparam ranksep 45
+skinparam nodesep 35
+skinparam ranksep 35
+skinparam wrapWidth 180
 
-package "Composition Root" #F7F7F7 {
-  component "main.cpp" as Main
+package "Ambiente Externo" #F8F8F8 {
+  component "Forza Motorsport 7\n(Data Out)" as Simulator
+  cloud "Rede local\nUDP :5300" as Lan
+
+  Simulator --> Lan : envia telemetria
 }
 
-package "Application Layer" #EAF2FF {
+package "Composition Root\nsrc/composition" #F7F7F7 {
+  component "main.cpp\ninstancia e injeta dependencias" as Main
+}
+
+package "Application Layer\nsrc/application" #EAF2FF {
   component "App" as App
   component "TelemetryService" as Telemetry
   component "InstrumentCluster" as Cluster
   component "Gauges\nSpeed / RPM / Fuel / Temp" as Gauges
 }
 
-package "Ports Layer" #FFF6DD {
-  component "Network ports" as NetworkPorts
-  component "UI ports" as UiPorts
-  component "Actuator ports" as ActuatorPorts
-  component "Clock port" as ClockPort
+package "Domain Layer\nsrc/domain" #F7F7F7 {
+  component "TelemetryFrame" as Frame
+  component "UiStatus" as Status
+}
+
+package "Ports Layer\nsrc/ports" #FFF6DD {
+  component "Portas de rede\ne telemetria" as NetworkPorts
+  component "Portas de interface" as UiPorts
+  component "Portas de atuacao" as ActuatorPorts
+  component "Porta de tempo" as ClockPort
 }
 
 note right of NetworkPorts
@@ -41,7 +54,6 @@ end note
 
 note right of ActuatorPorts
 IInstrumentCluster
-IInstrument
 IGaugeMotor
 end note
 
@@ -49,59 +61,70 @@ note right of ClockPort
 IClock
 end note
 
-package "Adapters Layer" #EEF7EE {
+package "Adapters Layer\nsrc/adapters" #EEF7EE {
   component "WiFiConfigPortal" as Wifi
   component "GpioButtonInput" as Button
   component "ArduinoClock" as Clock
   component "UdpReceiver" as Udp
   component "Forza7Decoder" as Decoder
   component "DisplayService" as Display
-  component "Display Layouts" as Layouts
-  component "GaugeMotorTmc2208" as Motor
+  component "Display Layouts\nLayout0 / Layout1 /\nLayout2 / Layout3" as Layouts
+  component "GaugeMotorTmc2208\n(4 instancias)" as Motor
 }
 
-package "Frameworks / Hardware" #FCEFEF {
-  component "WiFi / WebServer" as WifiInfra
+package "Painel Fisico" #FCEFEF {
+  component "Display TFT\nST7789" as Tft
+  component "Botao de layout" as ButtonHw
+  component "Instrumentos analogicos" as GaugesHw
+}
+
+package "Frameworks / Hardware" #F9F2FF {
+  component "WiFi / WebServer /\nPreferences" as WifiInfra
   component "WiFiUDP" as UdpInfra
   component "TFT_eSPI" as TftInfra
-  component "GPIO / stepper driver" as IoInfra
+  component "GPIO / TMC2208" as IoInfra
+  component "Arduino Framework" as ArduinoFw
 }
 
-App -[hidden]right- Telemetry
-Telemetry -[hidden]right- Cluster
-Cluster -[hidden]right- Gauges
-NetworkPorts -[hidden]right- UiPorts
-UiPorts -[hidden]right- ActuatorPorts
-ActuatorPorts -[hidden]right- ClockPort
-Wifi -[hidden]right- Button
-Button -[hidden]right- Clock
-Clock -[hidden]right- Udp
-Udp -[hidden]right- Decoder
-Decoder -[hidden]right- Display
-Display -[hidden]right- Layouts
-Layouts -[hidden]right- Motor
-
+' Composicao
 Main --> App
 Main --> Telemetry
 Main --> Cluster
 Main --> Gauges
 Main --> Display
+Main --> Layouts
+Main --> Wifi
+Main --> Button
+Main --> Clock
+Main --> Udp
+Main --> Decoder
+Main --> Motor
 
-App --> NetworkPorts
+' Aplicacao
+App --> Telemetry
+App --> Cluster
+App --> Display
+App --> Status
+
+Telemetry --> Frame
+Cluster --> Gauges
+Display --> Status
+Display --> Layouts
+
+' Portas
 App --> UiPorts
 App --> ActuatorPorts
 App --> ClockPort
+App --> NetworkPorts
 
 Telemetry --> NetworkPorts
 Telemetry --> ClockPort
-
 Cluster --> ActuatorPorts
 Gauges --> ActuatorPorts
 Gauges --> ClockPort
-
 Display --> UiPorts
-Display --> Layouts
 
+' Implementacoes concretas
 Wifi --> NetworkPorts
 Button --> UiPorts
 Clock --> ClockPort
@@ -109,10 +132,31 @@ Udp --> NetworkPorts
 Decoder --> NetworkPorts
 Motor --> ActuatorPorts
 
+' Infraestrutura
 Wifi --> WifiInfra
 Udp --> UdpInfra
 Display --> TftInfra
 Button --> IoInfra
 Motor --> IoInfra
+Clock --> ArduinoFw
+
+' Elementos fisicos
+Wifi --> Lan : conecta ao Wi-Fi
+Display --> Tft
+ButtonHw --> Button
+Motor --> GaugesHw
+
+note bottom of Main
+O ponto de composicao concentra a criacao
+de adaptadores concretos, o registro dos
+layouts e a injecao em App.
+end note
+
+note bottom of App
+O fluxo principal segue o recorte do relatorio:
+conexao de rede, recepcao de pacotes,
+decodificacao/normalizacao e despacho
+para instrumentos e interface.
+end note
 
 @enduml

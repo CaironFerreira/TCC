@@ -10,6 +10,7 @@ Este diretório separa os diagramas-fonte em PlantUML das imagens exportadas.
 ## Diagramas disponíveis
 
 - Arquitetura geral
+- Diagrama de atividades
 - Diagrama de classes
 - Diagrama de componentes
 - Diagrama de sequência

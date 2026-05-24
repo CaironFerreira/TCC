@@ -1,0 +1,73 @@
+@startuml
+title Diagrama de Sequência - Telemetria e Instrumentos
+
+hide footbox
+autonumber
+
+skinparam shadowing false
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+
+skinparam defaultFontSize 22
+skinparam titleFontSize 26
+skinparam ParticipantFontSize 22
+skinparam SequenceMessageFontSize 20
+skinparam ArrowFontSize 20
+skinparam DividerFontSize 22
+skinparam ParticipantPadding 28
+skinparam BoxPadding 14
+skinparam maxMessageSize 45
+skinparam ArrowThickness 1.5
+
+participant App
+participant TelemetryService as Telemetry
+participant UdpReceiver as UDP
+participant Forza7Decoder as Decoder
+participant InstrumentCluster as Cluster
+participant "IInstrument[*]" as Instrument
+
+== Recepcao e decodificacao da telemetria ==
+
+App -> Telemetry : tick()
+Telemetry -> UDP : receive(buffer, 512)
+
+alt pacote recebido
+  Telemetry -> Decoder : decode(data, len, frame)
+
+  alt frame valido
+    Decoder --> Telemetry : TelemetryFrame valido
+  else frame invalido
+    Telemetry -> Telemetry : descarta frame e mantem estado
+  end
+
+else pacote descartado ou erro de recepcao
+  Telemetry -> Telemetry : atualiza contadores / status
+
+else ausencia de pacote
+  Telemetry -> Telemetry : nenhum pacote lido no ciclo
+end
+
+Telemetry -> Telemetry : verifica timeout de sinal / frame valido
+
+== Atualizacao dos instrumentos ==
+
+App -> Cluster : setSpeedKmh(speed)
+Cluster -> Instrument : apply(speed)
+
+App -> Cluster : setRpm(rpm)
+Cluster -> Instrument : apply(rpm)
+
+opt telemetria valida
+  App -> Cluster : setFuelLevel(fuel)
+  Cluster -> Instrument : apply(fuel)
+end
+
+opt telemetria valida e intervalo de 5 s
+  App -> Cluster : setTireTemperature(temp)
+  Cluster -> Instrument : apply(temp)
+end
+
+App -> Cluster : tick(nowMicros)
+Cluster -> Instrument : tick(nowMicros)
+
+@enduml

@@ -1,116 +1,190 @@
 @startuml
-title Arquitetura Geral do Sistema
+title Arquitetura Geral do Sistema Embarcado
 
-left to right direction
+top to bottom direction
 skinparam shadowing false
 skinparam linetype ortho
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam defaultTextAlignment center
-skinparam nodesep 70
-skinparam ranksep 70
+skinparam nodesep 20
+skinparam ranksep 35
+skinparam wrapWidth 120
+skinparam ArrowFontSize 10
 
-actor "Jogador" as Player
+rectangle "Firmware ESP32" as Firmware #FFF6DD {
 
-rectangle "Plataforma de jogo\nPC / Xbox / PS4 / PS5" as Game #EAF2FF {
-  component "Simulador" as Simulator
-  component "Emissor de telemetria UDP" as GameTelemetry
+  package "Composition Root\nsrc/composition" as Composition #F7F7F7
+  package "Application Layer\nsrc/application" as Application #EAF2FF
+  package "Domain Layer\nsrc/domain" as Domain #F7F7F7
+  package "Ports Layer\nsrc/ports" as Ports #FFF6DD
+  package "Adapters Layer\nsrc/adapters" as Adapters #EEF7EE
+
+  Composition -[hidden]down- Application
+  Application -[hidden]down- Domain
+  Domain -[hidden]down- Ports
+  Ports -[hidden]down- Adapters
 }
 
-cloud "Rede local" as Lan #EEF7EE
-
-rectangle "ESP32\nFirmware" as Firmware #FFF6DD {
-  component "Portal Wi-Fi" as WifiPortal
-  component "Servico de telemetria" as TelemetryService
-  component "Cluster de\ninstrumentos" as Cluster
-  component "Servico de display" as Display
+rectangle "Ambiente Externo" as External #F8F8F8 {
+  component "Simulador\nForza Motorsport 7" as Simulator
+  cloud "Rede local\nUDP :5300" as Lan
 }
 
-rectangle "Painel fisico" as Panel #F8F8F8 {
-  component "Velocimetro" as SpeedGauge
-  component "Conta-giros" as RpmGauge
-  component "Combustivel" as FuelGauge
-  component "Temperatura" as TempGauge
-  component "Display TFT" as Tft
-  component "Botao de layout" as Button
+rectangle "Painel Físico" as Panel #FCEFEF {
+  component "Display TFT\nST7789" as Tft
+  component "Botão de layout" as ButtonHw
+  component "Instrumentos analógicos\nVelocidade / RPM /\nCombustível /\nTemperatura" as GaugesHw
 }
 
-' layout interno
-Simulator -[hidden]right- GameTelemetry
-WifiPortal -[hidden]down- TelemetryService
-TelemetryService -[hidden]down- Cluster
-Cluster -[hidden]right- Display
+rectangle "Frameworks / Infraestrutura" as Infra #F9F2FF {
+  component "WiFi /\nWebServer /\nPreferences" as WifiInfra
+  component "WiFiUDP" as UdpInfra
+  component "TFT_eSPI" as TftInfra
+  component "GPIO /\ndriver TMC2208" as IoInfra
+  component "Arduino\nFramework" as ArduinoFw
+}
 
-SpeedGauge -[hidden]right- RpmGauge
-RpmGauge -[hidden]right- FuelGauge
-FuelGauge -[hidden]right- TempGauge
-TempGauge -[hidden]down- Tft
-Tft -[hidden]left- Button
+' Posicionamento visual
+Firmware -[hidden]right- External
+External -[hidden]down- Panel
+Panel -[hidden]down- Infra
 
-' ===================== CONEXÕES SEM LABEL =====================
+' Fluxo externo (visão macro)
+Simulator --> Firmware : envia telemetria (via LAN)
+Firmware --> Panel : atualiza painel físico
+Firmware --> Infra : usa frameworks / infra
 
-Player --> Simulator
-Simulator --> GameTelemetry
-GameTelemetry --> Lan
-
-Lan --> WifiPortal
-Lan --> TelemetryService
-
-TelemetryService --> Cluster
-TelemetryService --> Display
-
-Cluster --> SpeedGauge
-Cluster --> RpmGauge
-Cluster --> FuelGauge
-Cluster --> TempGauge
-
-Button --> Display
-Display --> Tft
-
-Player --> Panel
-
-' ===================== LABELS COMO NOTES =====================
-
-note left of Simulator
-dirige
+note bottom of Firmware
+Visão macro: mostra camadas principais
+sem detalhes de comunicação interna.
 end note
 
-note right of Simulator
-gera dados
+@enduml
+@startuml
+title Organização Interna do Firmware ESP32
+
+top to bottom direction
+skinparam shadowing false
+skinparam linetype ortho
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam defaultTextAlignment center
+skinparam nodesep 18
+skinparam ranksep 32
+skinparam wrapWidth 120
+skinparam ArrowFontSize 10
+
+package "Composition Root\nsrc/composition" as Composition #F7F7F7 {
+  component "main.cpp" as Main
+}
+
+package "Application Layer\nsrc/application" as Application #EAF2FF {
+  component "App" as App
+  component "TelemetryService" as Telemetry
+  component "InstrumentCluster" as Cluster
+  component "Gauges\nSpeed / RPM /\nFuel / Temp" as Gauges
+
+  App -[hidden]down- Telemetry
+  Telemetry -[hidden]down- Cluster
+  Cluster -[hidden]down- Gauges
+}
+
+package "Domain Layer\nsrc/domain" as Domain #F7F7F7 {
+  component "TelemetryFrame" as Frame
+  component "UiStatus" as Status
+
+  Frame -[hidden]down- Status
+}
+
+package "Ports Layer\nsrc/ports" as Ports #FFF6DD {
+  component "NetworkPorts" as NetworkPorts
+  component "UiPorts" as UiPorts
+  component "ActuatorPorts" as ActuatorPorts
+  component "ClockPort" as ClockPort
+
+  NetworkPorts -[hidden]down- UiPorts
+  UiPorts -[hidden]down- ActuatorPorts
+  ActuatorPorts -[hidden]down- ClockPort
+}
+
+package "Adapters Layer\nsrc/adapters" as Adapters #EEF7EE {
+  component "WiFiConfigPortal" as Wifi
+  component "UdpReceiver" as Udp
+  component "Forza7Decoder" as Decoder
+  component "DisplayService\n+ Layout0..3" as Display
+  component "GpioButtonInput" as Button
+  component "GaugeMotorTmc2208" as Motor
+  component "ArduinoClock" as Clock
+
+  Wifi -[hidden]down- Udp
+  Udp -[hidden]down- Decoder
+  Decoder -[hidden]down- Display
+  Display -[hidden]down- Button
+  Button -[hidden]down- Motor
+  Motor -[hidden]down- Clock
+}
+
+Composition -[hidden]down- Application
+Application -[hidden]down- Domain
+Domain -[hidden]down- Ports
+Ports -[hidden]down- Adapters
+
+' Composição e inicialização
+Main --> App : injeta dependências
+Main ..> Wifi : instancia
+Main ..> Motor : instancia
+
+' Orquestração da aplicação
+App --> Telemetry : executa recepção
+App --> Cluster : despacha telemetria
+App --> Display : atualiza interface
+App --> Button : lê entrada
+App --> Clock : consulta tempo
+App --> Wifi : verifica conexão
+
+' Fluxo de dados
+Telemetry --> Udp : recebe
+Telemetry --> Decoder : decodifica
+Telemetry --> Frame : produz
+
+App --> Frame : lê último frame
+App --> Status : atualiza com base no frame
+
+Frame --> Cluster : fornece dados
+Cluster --> Gauges : envia valores tratados
+
+Display --> Status : consulta
+
+' Dependências por portas
+Telemetry ..> NetworkPorts
+Telemetry ..> ClockPort
+
+Cluster ..> ActuatorPorts
+
+Gauges ..> ActuatorPorts
+Gauges ..> ClockPort
+
+Display ..> UiPorts
+Button ..> UiPorts
+
+Wifi ..> NetworkPorts
+Udp ..> NetworkPorts
+Decoder ..> NetworkPorts
+
+Motor ..> ActuatorPorts
+Clock ..> ClockPort
+
+note right of Main
+Ponto de composição:
+instancia adaptadores, layouts
+e instrumentos concretos.
 end note
 
-note top of Lan
-envia UDP
-end note
-
-note right of Lan
-conexao
-end note
-
-note bottom of Lan
-telemetria
-end note
-
-note right of TelemetryService
-velocidade / rpm
-combustivel / temperatura
-end note
-
-note right of Display
-marcha / status
-volta / posicao
-end note
-
-note right of Button
-troca layout
-end note
-
-note right of Tft
-renderiza UI
-end note
-
-note bottom of Panel
-observa
+note bottom of Ports
+A aplicação depende de contratos.
+Os adaptadores fazem a ponte
+com as implementações concretas.
 end note
 
 @enduml
