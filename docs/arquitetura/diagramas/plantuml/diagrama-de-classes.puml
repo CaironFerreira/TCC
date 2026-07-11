@@ -1,68 +1,40 @@
 @startuml
-title Diagrama de Classes do Núcleo do Firmware
 
-top to bottom direction
+left to right direction
+scale 0.95
 
 skinparam shadowing false
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
 skinparam defaultTextAlignment center
-
-skinparam nodesep 14
-skinparam ranksep 22
-skinparam wrapWidth 110
-
-skinparam defaultFontSize 13
-skinparam classFontSize 13
-skinparam classAttributeFontSize 11
-skinparam classStereotypeFontSize 11
-skinparam packageFontSize 14
-skinparam ArrowFontSize 10
-skinparam noteFontSize 10
+skinparam nodesep 12
+skinparam ranksep 18
+skinparam Padding 5
 
 hide empty members
+hide circle
 
-package "Domínio\nsrc/domain" as Domain #F7F7F7 {
+package "Dominio" as Domain #F7F7F7 {
   class TelemetryFrame {
     +valid: bool
-    +timestampMs: uint32_t
     +speedKmh: float
     +rpm: uint16_t
     +gear: int8_t
-    +lapNumber: uint16_t
-    +racePosition: uint8_t
     +fuel: float
-    +tireTempFL: float
-    +tireTempFR: float
-    +tireTempRL: float
-    +tireTempRR: float
     +tireTempAvg: float
-    +invalidate()
   }
 
   class UiStatus {
-    +ssid: char[33]
     +wifiConnected: bool
-    +ip: char[16]
     +telemetryValid: bool
     +telemetrySignalPresent: bool
     +telemetryInputStatus: TelemetryInputStatus
-    +telemetryDiscardedPackets: uint32_t
-    +telemetryReceiveErrors: uint32_t
     +speedKmh: float
     +rpm: int
     +gear: int
-    +lapNumber: int
-    +racePosition: int
     +fuel: float
     +tireTempAvg: float
-    +tireTempFL: float
-    +tireTempFR: float
-    +tireTempRL: float
-    +tireTempRR: float
-    +setSsid(value: const char*)
-    +setIp(value: const char*)
   }
 
   enum TelemetryInputStatus {
@@ -73,188 +45,205 @@ package "Domínio\nsrc/domain" as Domain #F7F7F7 {
     ReceiveError
   }
 
-  TelemetryFrame -[hidden]right- UiStatus
-  UiStatus -[hidden]right- TelemetryInputStatus
+  TelemetryFrame -[hidden]down- UiStatus
+  UiStatus -[hidden]down- TelemetryInputStatus
 }
 
-package "Aplicação\nsrc/application" as Application #EAF2FF {
-
+package "Aplicacao" as Application #EAF2FF {
   class App {
     +begin(cfg: AppConfig)
     +tick()
   }
 
-  class TelemetryService {
+  class TelemetryService
+  class InstrumentCluster
+
+  App -[hidden]down- TelemetryService
+  TelemetryService -[hidden]down- InstrumentCluster
+}
+
+package "Portas" as Ports #FFF6DD {
+  interface IWifiConfigPortal {
+    +begin()
+    +tick()
+    +isConnected(): bool
+    +isPortalActive(): bool
+  }
+
+  interface IClock {
+    +nowMs(): uint32_t
+    +nowMicros(): uint32_t
+  }
+
+  interface IButtonInput {
+    +begin()
+    +tick(nowMs: uint32_t)
+    +wasPressed(): bool
+  }
+
+  interface IPacketReceiver {
+    +begin(port: uint16_t): bool
+    +receive(buffer, bufferSize)
+  }
+
+  interface ITelemetrySource {
     +begin(port: uint16_t): bool
     +tick()
     +hasValidTelemetry(): bool
     +hasAnySignal(): bool
     +inputStatus(): TelemetryInputStatus
-    +lastFrame(): const TelemetryFrame&
-    +discardedPacketCount(): uint32_t
-    +receiveErrorCount(): uint32_t
     +speedKmh(): float
     +rpm(): float
     +gear(): int
-    +lapNumber(): int
-    +racePosition(): int
     +fuelLevel(): float
     +tireTempAvgC(): float
-    +tireTempFLC(): float
-    +tireTempFRC(): float
-    +tireTempRLC(): float
-    +tireTempRRC(): float
   }
 
-  class InstrumentCluster {
+  interface ITelemetryDecoder {
+    +decode(data, len, out): bool
+    +name(): const char*
+  }
+
+  interface IStatusDisplay {
+    +begin(layoutId: uint8_t): bool
+    +nextLayout(): bool
+    +setStatus(status: UiStatus)
+    +showMessage(line1, line2, line3, line4)
+    +tick()
+  }
+
+  interface IGaugeMotor {
+    +begin()
+    +tick(nowMicros: uint32_t)
+    +moveTo(targetSteps, riseSpeed, fallSpeed)
+    +setCurrentPosition(steps)
+    +isMoving(): bool
+  }
+
+  interface IInstrumentCluster {
     +begin()
     +setSpeedKmh(speedKmh: float)
     +setRpm(rpm: float)
     +setFuelLevel(fuelLevel: float)
-    +setTireTemperature(temperatureC: float)
+    +setTireTemperature(tempC: float)
     +tick(nowMicros: uint32_t)
   }
 
-  App -[hidden]right- TelemetryService
-  TelemetryService -[hidden]right- InstrumentCluster
+  IWifiConfigPortal -[hidden]right- IClock
+  IButtonInput -[hidden]right- IPacketReceiver
+  ITelemetrySource -[hidden]right- ITelemetryDecoder
+  IStatusDisplay -[hidden]right- IGaugeMotor
+
+  IWifiConfigPortal -[hidden]down- IButtonInput
+  IButtonInput -[hidden]down- ITelemetrySource
+  ITelemetrySource -[hidden]down- IStatusDisplay
+  IStatusDisplay -[hidden]down- IInstrumentCluster
+
+  IClock -[hidden]down- IPacketReceiver
+  IPacketReceiver -[hidden]down- ITelemetryDecoder
+  ITelemetryDecoder -[hidden]down- IGaugeMotor
 }
 
-package "Instrumentos\nsrc/application/instruments" as Instruments #EEF7EE {
-
-  interface IInstrument
+package "Instrumentos" as Instruments #EEF7EE {
+  interface IInstrument {
+    +begin()
+    +tick(nowMicros: uint32_t)
+    +supports(type): bool
+    +apply(signal)
+  }
 
   class SpeedGauge
   class RpmGauge
   class FuelGauge
   class TireTempGauge
 
-  IInstrument -[hidden]right- SpeedGauge
-  SpeedGauge -[hidden]right- RpmGauge
-  RpmGauge -[hidden]right- FuelGauge
-  FuelGauge -[hidden]right- TireTempGauge
+  IInstrument -[hidden]down- SpeedGauge
+  SpeedGauge -[hidden]down- RpmGauge
+  RpmGauge -[hidden]down- FuelGauge
+  FuelGauge -[hidden]down- TireTempGauge
 }
 
-package "Portas\nsrc/ports" as Ports #FFF6DD {
-
-  interface IWifiConfigPortal
-  interface IButtonInput
-  interface IClock
-
-  interface ITelemetrySource
-  interface IPacketReceiver
-  interface ITelemetryDecoder
-
-  interface IStatusDisplay
-  interface IInstrumentCluster
-  interface IGaugeMotor
-
-  ' IStatusDisplay also exposes showMessage used during init
-  IStatusDisplay -[hidden]right- showMessage
-
-  IWifiConfigPortal -[hidden]right- IButtonInput
-  IButtonInput -[hidden]right- IClock
-
-  ITelemetrySource -[hidden]right- IPacketReceiver
-  IPacketReceiver -[hidden]right- ITelemetryDecoder
-
-  IStatusDisplay -[hidden]right- IInstrumentCluster
-  IInstrumentCluster -[hidden]right- IGaugeMotor
-
-  IClock -[hidden]down- ITelemetrySource
-  ITelemetryDecoder -[hidden]down- IStatusDisplay
-}
-
-package "Adaptadores\nsrc/adapters" as Adapters #FCEFEF {
-
+package "Adaptadores" as Adapters #FCEFEF {
   class WiFiConfigPortal
   class GpioButtonInput
   class ArduinoClock
-
   class UdpReceiver
   class Forza7Decoder
   class DisplayService
 
-  interface IDisplayLayout
+  interface IDisplayLayout {
+    +begin(display)
+    +render(status: UiStatus, forceAll: bool, now)
+  }
   class GaugeMotorTmc2208
 
-  WiFiConfigPortal -[hidden]right- GpioButtonInput
-  GpioButtonInput -[hidden]right- ArduinoClock
-
-  UdpReceiver -[hidden]right- Forza7Decoder
-  Forza7Decoder -[hidden]right- DisplayService
-
-  IDisplayLayout -[hidden]right- GaugeMotorTmc2208
-
+  WiFiConfigPortal -[hidden]down- GpioButtonInput
+  GpioButtonInput -[hidden]down- ArduinoClock
   ArduinoClock -[hidden]down- UdpReceiver
+  UdpReceiver -[hidden]down- Forza7Decoder
+  Forza7Decoder -[hidden]down- DisplayService
   DisplayService -[hidden]down- IDisplayLayout
+  IDisplayLayout -[hidden]down- GaugeMotorTmc2208
 }
 
-' Organização vertical dos pacotes
-Domain -[hidden]down- Application
+Domain -[hidden]right- Application
+Application -[hidden]right- Ports
 Application -[hidden]down- Instruments
-Instruments -[hidden]down- Ports
 Ports -[hidden]down- Adapters
+Instruments -[hidden]right- Adapters
 
-' Relações de domínio
-UiStatus --> TelemetryInputStatus
+UiStatus -down-> TelemetryInputStatus
 
-' Relações centrais da aplicação
-App *-- UiStatus
-App ..> TelemetryFrame : lê último frame
-
-App --> IWifiConfigPortal
-App --> IButtonInput
-App --> IClock
-App --> ITelemetrySource
-App --> IStatusDisplay
-App --> IInstrumentCluster
+ITelemetrySource ..> TelemetryFrame
+ITelemetrySource ..> TelemetryInputStatus
+ITelemetryDecoder ..> TelemetryFrame
+IStatusDisplay ..> UiStatus
+IDisplayLayout ..> UiStatus
 
 TelemetryService ..|> ITelemetrySource
-TelemetryService *-- TelemetryFrame
-TelemetryService --> IPacketReceiver
-TelemetryService --> ITelemetryDecoder
-TelemetryService --> IClock
-
 InstrumentCluster ..|> IInstrumentCluster
-InstrumentCluster o-- "1..*" IInstrument
 
-' Display e layouts
-DisplayService ..|> IStatusDisplay
-DisplayService o-- "1..*" IDisplayLayout
-DisplayService --> UiStatus
-
-' Adaptadores concretos
-WiFiConfigPortal ..|> IWifiConfigPortal
-GpioButtonInput ..|> IButtonInput
-ArduinoClock ..|> IClock
-UdpReceiver ..|> IPacketReceiver
-Forza7Decoder ..|> ITelemetryDecoder
-GaugeMotorTmc2208 ..|> IGaugeMotor
-
-' Instrumentos concretos
 SpeedGauge ..|> IInstrument
 RpmGauge ..|> IInstrument
 FuelGauge ..|> IInstrument
 TireTempGauge ..|> IInstrument
 
-SpeedGauge --> IGaugeMotor
-SpeedGauge --> IClock
+WiFiConfigPortal ..|> IWifiConfigPortal
+GpioButtonInput ..|> IButtonInput
+ArduinoClock ..|> IClock
+UdpReceiver ..|> IPacketReceiver
+Forza7Decoder ..|> ITelemetryDecoder
+DisplayService ..|> IStatusDisplay
+GaugeMotorTmc2208 ..|> IGaugeMotor
 
-RpmGauge --> IGaugeMotor
-RpmGauge --> IClock
+App *-left- UiStatus
+App -right-> IWifiConfigPortal
+App -right-> IButtonInput
+App -up-> IClock
+App -right-> ITelemetrySource
+App -right-> IStatusDisplay
+App -down-> IInstrumentCluster
 
-FuelGauge --> IGaugeMotor
-FuelGauge --> IClock
+TelemetryService *-left- TelemetryFrame
+TelemetryService -up-> IClock
+TelemetryService -right-> IPacketReceiver
+TelemetryService -down-> ITelemetryDecoder
 
-TireTempGauge --> IGaugeMotor
-TireTempGauge --> IClock
+InstrumentCluster -down-> "0..*" IInstrument
 
-legend bottom
-|= Observações do diagrama |
-| App: classe orquestradora do firmware; coordena Wi-Fi, telemetria, instrumentos, botão de layout e interface. |
-| TelemetryService: transforma pacotes recebidos em estado de telemetria confiável, tratando descarte, erro e timeout. |
-| DisplayService: usa layouts concretos do display, omitidos para preservar a legibilidade. |
-| Instrumentos: SpeedGauge, RpmGauge, FuelGauge e TireTempGauge representam o comportamento físico do MVP. |
-endlegend
+DisplayService *-left- UiStatus
+DisplayService -down-> "0..*" IDisplayLayout
+
+SpeedGauge -up-> IClock
+SpeedGauge -right-> IGaugeMotor
+
+RpmGauge -up-> IClock
+RpmGauge -right-> IGaugeMotor
+
+FuelGauge -up-> IClock
+FuelGauge -right-> IGaugeMotor
+
+TireTempGauge -up-> IClock
+TireTempGauge -right-> IGaugeMotor
 
 @enduml
